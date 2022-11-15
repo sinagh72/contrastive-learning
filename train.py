@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader
 
 from simclr import SimCLR
 
-NUM_WORKERS = os.cpu_count()
+NUM_WORKERS = 8
 
 
 def train_simclr(batch_size, max_epochs=500, train_data=None, val_data=None, checkpoint_path=None, **kwargs):
@@ -20,8 +20,9 @@ def train_simclr(batch_size, max_epochs=500, train_data=None, val_data=None, che
     device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
     trainer = pl.Trainer(default_root_dir=os.path.join(checkpoint_path, 'SimCLR'),
                          accelerator="gpu" if str(device).startswith("cuda") else "cpu",
-                         devices=8,
+                         devices=4,
                          strategy="ddp",
+                         num_nodes=1,
                          max_epochs=max_epochs,
                          callbacks=[ModelCheckpoint(save_weights_only=True, mode='max', monitor='val_acc_top5'),
                                     LearningRateMonitor('epoch')])
