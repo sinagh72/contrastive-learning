@@ -55,7 +55,7 @@ if __name__ == "__main__":
     train, valid = torch.utils.data.random_split(train_dataset, [0.7, 0.3], generator=torch.Generator().manual_seed(42))
 
     simclr_model = train_simclr(batch_size=64,
-                                max_epochs=500,
+                                max_epochs=2000,
                                 train_data=train,
                                 val_data=valid,
                                 checkpoint_path=CHECKPOINT_PATH,
