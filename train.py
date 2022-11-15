@@ -1,6 +1,7 @@
 import os
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor
+from pytorch_lightning.strategies.ddp import DDPStrategy
 import torch
 from torch.utils.data import DataLoader
 
@@ -20,10 +21,9 @@ def train_simclr(batch_size, max_epochs=500, train_data=None, val_data=None, che
     device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
     trainer = pl.Trainer(default_root_dir=os.path.join(checkpoint_path, 'SimCLR'),
                          accelerator="gpu" if str(device).startswith("cuda") else "cpu",
-                         devices=4,
-                         strategy="ddp",
-                         log_every_n_steps=8,
-                         num_nodes=1,
+                         devices=8,
+                         strategy=DDPStrategy(find_unused_parameters=False),
+                       #  num_nodes=1,
                          max_epochs=max_epochs,
                          callbacks=[ModelCheckpoint(save_weights_only=True, mode='max', monitor='val_acc_top5'),
                                     LearningRateMonitor('epoch')])
