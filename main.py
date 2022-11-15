@@ -54,7 +54,7 @@ if __name__ == "__main__":
     print(len(train_dataset))
     train, valid = torch.utils.data.random_split(train_dataset, [0.7, 0.3], generator=torch.Generator().manual_seed(42))
 
-    simclr_model = train_simclr(batch_size=256,
+    simclr_model = train_simclr(batch_size=96,
                                 max_epochs=500,
                                 train_data=train,
                                 val_data=valid,

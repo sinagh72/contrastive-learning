@@ -22,6 +22,7 @@ def train_simclr(batch_size, max_epochs=500, train_data=None, val_data=None, che
                          accelerator="gpu" if str(device).startswith("cuda") else "cpu",
                          devices=4,
                          strategy="ddp",
+                         log_every_n_steps=8,
                          num_nodes=1,
                          max_epochs=max_epochs,
                          callbacks=[ModelCheckpoint(save_weights_only=True, mode='max', monitor='val_acc_top5'),

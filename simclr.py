@@ -49,7 +49,7 @@ class SimCLR(pl.LightningModule):
         nll = nll.mean()
 
         # Logging loss
-        self.log(mode + '_loss', nll)
+        self.log(mode + '_loss', nll, sync_dist=True)
         # Get ranking position of positive example
         comb_sim = torch.cat([cos_sim[pos_mask][:, None],  # First position positive example
                               cos_sim.masked_fill(pos_mask, -9e15)],
