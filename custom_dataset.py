@@ -79,7 +79,7 @@ class CustomDataset(Dataset):
         img_filename_list = os.listdir(data_root)
         img_ids = []
         for img_file in img_filename_list:
-            root = os.path.join(data_root, img_file, "TIFFs", "8bitTIFFs")
+            root = os.path.join(data_root, img_file, "TIFFs", "8bitTIFFs_128")
             img_ids += [os.path.join(root, str(id.split('.')[0])) for id in os.listdir(root)]
         return img_ids
 
