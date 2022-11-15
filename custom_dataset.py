@@ -21,7 +21,7 @@ class ContrastiveTransformations(object):
 def train_aug(image):
     transfrom = transforms.Compose([transforms.Resize(128, InterpolationMode.BICUBIC),
                                     transforms.RandomHorizontalFlip(),
-                                    transforms.RandomResizedCrop(size=512),
+                                    transforms.RandomResizedCrop(size=128),
                                     transforms.RandomApply([
                                         transforms.ColorJitter(brightness=0.5,
                                                                contrast=0.5,
@@ -79,7 +79,7 @@ class CustomDataset(Dataset):
         img_filename_list = os.listdir(data_root)
         img_ids = []
         for img_file in img_filename_list:
-            root = os.path.join(data_root, img_file, "TIFFs", "8bitTIFFs_128")
+            root = os.path.join(data_root, img_file, "TIFFs", "8bitTIFFs")
             img_ids += [os.path.join(root, str(id.split('.')[0])) for id in os.listdir(root)]
         return img_ids
 
