@@ -1,5 +1,5 @@
 from torch.utils.data import Dataset
-from torchvision.transforms import transforms
+from torchvision.transforms import transforms, InterpolationMode
 import torch
 import os
 import numpy as np
@@ -19,7 +19,8 @@ class ContrastiveTransformations(object):
 
 
 def train_aug(image):
-    transfrom = transforms.Compose([transforms.RandomHorizontalFlip(),
+    transfrom = transforms.Compose([transforms.Resize(128, InterpolationMode.BICUBIC),
+                                    transforms.RandomHorizontalFlip(),
                                     transforms.RandomResizedCrop(size=512),
                                     transforms.RandomApply([
                                         transforms.ColorJitter(brightness=0.5,
