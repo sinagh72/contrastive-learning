@@ -21,12 +21,14 @@ def train_simclr(batch_size, max_epochs=500, train_data=None, val_data=None, che
     device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
     trainer = pl.Trainer(default_root_dir=os.path.join(checkpoint_path, 'SimCLR'),
                          accelerator="gpu" if str(device).startswith("cuda") else "cpu",
-                         devices=8,
-                         strategy=DDPStrategy(find_unused_parameters=False),
+                         devices=1,
+                         # strategy=DDPStrategy(find_unused_parameters=False),
                          max_epochs=max_epochs,
-                         callbacks=[ModelCheckpoint(save_weights_only=True, mode='max', monitor='val_acc_top5'),
-                                    LearningRateMonitor('epoch')],
-                         log_every_n_steps=10)
+                         callbacks=[
+                             # ModelCheckpoint(save_weights_only=True, mode='max', monitor='val_acc_top5'),
+                             ModelCheckpoint(save_weights_only=True, mode='min', monitor='loss'),
+                             LearningRateMonitor('epoch')],
+                         log_every_n_steps=1)
     trainer.logger._default_hp_metric = None  # Optional logging argument that we don't need
 
     # Check whether pretrained model exists. If yes, load it and skip training

@@ -53,7 +53,7 @@ if __name__ == "__main__":
                                   transform=ContrastiveTransformations(train_aug, n_views=n_views))
     # train = torch.utils.data.random_split(train_dataset, [0.7, 0.3], generator=torch.Generator().manual_seed(42))
 
-    simclr_model = train_simclr(batch_size=64,
+    simclr_model = train_simclr(batch_size=256,
                                 max_epochs=2000,
                                 train_data=train_dataset,
                                 checkpoint_path=CHECKPOINT_PATH,
