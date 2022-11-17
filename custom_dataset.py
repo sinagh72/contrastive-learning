@@ -21,7 +21,8 @@ class ContrastiveTransformations(object):
 def train_aug(image):
     transfrom = transforms.Compose([transforms.Resize(128, InterpolationMode.BICUBIC),
                                     transforms.RandomHorizontalFlip(),
-                                    transforms.RandomResizedCrop(size=128),
+                                    transforms.RandomResizedCrop(size=128, scale=(0.25, 0.75),
+                                                                 interpolation=InterpolationMode.BICUBIC),
                                     transforms.RandomApply([
                                         transforms.ColorJitter(brightness=0.5,
                                                                contrast=0.5,

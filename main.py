@@ -52,14 +52,14 @@ if __name__ == "__main__":
     train_dataset = CustomDataset(data_root=DATASET_PATH, mode="train", img_suffix='.tif',
                                   transform=ContrastiveTransformations(train_aug, n_views=n_views))
     print(len(train_dataset))
-    train, valid = torch.utils.data.random_split(train_dataset, [0.7, 0.3], generator=torch.Generator().manual_seed(42))
+    # train = torch.utils.data.random_split(train_dataset, [0.7, 0.3], generator=torch.Generator().manual_seed(42))
 
-    simclr_model = train_simclr(batch_size=64,
+    simclr_model = train_simclr(batch_size=2,
                                 max_epochs=2000,
-                                train_data=train,
-                                val_data=valid,
+                                train_data=train_dataset,
                                 checkpoint_path=CHECKPOINT_PATH,
                                 hidden_dim=128,
                                 lr=5e-4,
                                 temperature=0.07,
-                                weight_decay=1e-4)
+                                weight_decay=1e-4,
+                                n_views=n_views)

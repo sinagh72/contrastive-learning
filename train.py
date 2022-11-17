@@ -21,9 +21,8 @@ def train_simclr(batch_size, max_epochs=500, train_data=None, val_data=None, che
     device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
     trainer = pl.Trainer(default_root_dir=os.path.join(checkpoint_path, 'SimCLR'),
                          accelerator="gpu" if str(device).startswith("cuda") else "cpu",
-                         devices=8,
-                         strategy=DDPStrategy(find_unused_parameters=False),
-                       #  num_nodes=1,
+                         devices=1,
+                         # strategy=DDPStrategy(find_unused_parameters=False),
                          max_epochs=max_epochs,
                          callbacks=[ModelCheckpoint(save_weights_only=True, mode='max', monitor='val_acc_top5'),
                                     LearningRateMonitor('epoch')])
@@ -38,11 +37,12 @@ def train_simclr(batch_size, max_epochs=500, train_data=None, val_data=None, che
     else:
         train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True,
                                   drop_last=True, pin_memory=True, num_workers=NUM_WORKERS)
-        val_loader = DataLoader(val_data, batch_size=batch_size, shuffle=False,
-                                drop_last=False, pin_memory=True, num_workers=NUM_WORKERS)
+        if val_data is not None:
+            val_loader = DataLoader(val_data, batch_size=batch_size, shuffle=False,
+                                    drop_last=False, pin_memory=True, num_workers=NUM_WORKERS)
 
         model = SimCLR(max_epochs=max_epochs, **kwargs)
-        trainer.fit(model, train_dataloaders=train_loader, val_dataloaders=val_loader)
+        trainer.fit(model, train_dataloaders=train_loader)
         model = SimCLR.load_from_checkpoint(
             trainer.checkpoint_callback.best_model_path)  # Load best checkpoint after training
 
