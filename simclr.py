@@ -36,16 +36,16 @@ class SimCLR(pl.LightningModule):
         imgs = batch["img"]
         ids = batch["img_id"]
         # imgs is a tensor of (B*n_view, 3, H, W), for the batch of 64 we would have (128, 3, 128, 128)
-        imgs = torch.cat(imgs, dim=0)
-        img_grid = torchvision.utils.make_grid(imgs, nrow=4, normalize=True, pad_value=0.9).cpu()
-        img_grid = img_grid.permute(1, 2, 0)
-
-        plt.figure(figsize=(10,5))
-        plt.title('Augmented image examples of the STL10 dataset')
-        plt.imshow(img_grid)
-        plt.axis('off')
-        plt.show()
-        plt.close()
+        # imgs = torch.cat(imgs, dim=0)
+        # img_grid = torchvision.utils.make_grid(imgs, nrow=4, normalize=True, pad_value=0.9).cpu()
+        # img_grid = img_grid.permute(1, 2, 0)
+        #
+        # plt.figure(figsize=(10,5))
+        # plt.title('Augmented image examples of the STL10 dataset')
+        # plt.imshow(img_grid)
+        # plt.axis('off')
+        # plt.show()
+        # plt.close()
         # Encode all images (B*n_view, hidden_dim), hidden_dim=128 in this case
         feats = self.convnet(imgs)
         # Calculate cosine similarity between all images in the batch
