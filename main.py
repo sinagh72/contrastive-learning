@@ -17,7 +17,7 @@ import torch
 import torch.utils.data as data
 
 
-def show_img(num_imgs=6, n_views=2):
+def show_img(train, num_imgs=6, n_views=2):
     imgs = torch.stack([img for idx in range(num_imgs) for img in train[idx]["img"]], dim=0)
     img_grid = torchvision.utils.make_grid(imgs, nrow=n_views, normalize=True, pad_value=0.9)
     img_grid = img_grid.permute(1, 2, 0)
@@ -51,10 +51,9 @@ if __name__ == "__main__":
 
     train_dataset = CustomDataset(data_root=DATASET_PATH, mode="train", img_suffix='.tif',
                                   transform=ContrastiveTransformations(train_aug, n_views=n_views))
-    print(len(train_dataset))
     # train = torch.utils.data.random_split(train_dataset, [0.7, 0.3], generator=torch.Generator().manual_seed(42))
 
-    simclr_model = train_simclr(batch_size=256,
+    simclr_model = train_simclr(batch_size=64,
                                 max_epochs=2000,
                                 train_data=train_dataset,
                                 checkpoint_path=CHECKPOINT_PATH,

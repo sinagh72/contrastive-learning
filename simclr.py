@@ -34,9 +34,8 @@ class SimCLR(pl.LightningModule):
     def info_nce_loss(self, batch, mode='train'):
         # list of augmentation list
         imgs = batch["img"]
-        ids = batch["img_id"]
         # imgs is a tensor of (B*n_view, 3, H, W), for the batch of 64 we would have (128, 3, 128, 128)
-        # imgs = torch.cat(imgs, dim=0)
+        imgs = torch.cat(imgs, dim=0)
         # img_grid = torchvision.utils.make_grid(imgs, nrow=4, normalize=True, pad_value=0.9).cpu()
         # img_grid = img_grid.permute(1, 2, 0)
         #
@@ -78,5 +77,5 @@ class SimCLR(pl.LightningModule):
     def training_step(self, batch, batch_idx):
         return self.info_nce_loss(batch, mode='train')
 
-    def validation_step(self, batch, batch_idx):
-        self.info_nce_loss(batch, mode='val')
+    # def validation_step(self, batch, batch_idx):
+    #     self.info_nce_loss(batch, mode='val')
