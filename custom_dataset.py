@@ -77,11 +77,28 @@ class CustomDataset(Dataset):
         return len(self.img_ids)
 
     def get_img_ids(self, data_root: str):
-        img_filename_list = os.listdir(data_root)
+        img_filename_list = os.listdir(os.path.join(data_root))
         img_ids = []
         for img_file in img_filename_list:
-            root = os.path.join(data_root, img_file, "TIFFs", "8bitTIFFs")
+            # root = os.path.join(data_root, img_file, "TIFFs", "8bitTIFFs")
+            root = os.path.join(data_root, img_file)
             img_ids += [os.path.join(root, str(id.split('.')[0])) for id in os.listdir(root)]
+            # if "AMD" in root:
+            #     counts = len(os.listdir(os.path.join(data_root, "AMD")))
+            #     for img in new_data:
+            #         Image.open(img+".tif").save(os.path.join(data_root, "AMD","AMD_"+str(counts)+".tif"))
+            #         counts += 1
+            # elif "DME" in root:
+            #     counts = len(os.listdir(os.path.join(data_root, "DME")))
+            #     for img in new_data:
+            #         Image.open(img+".tif").save(os.path.join(data_root, "DME","DME_"+str(counts)+".tif"))
+            #         counts += 1
+            #
+            # elif "NORMAL" in root:
+            #     counts = len(os.listdir(os.path.join(data_root, "Normal")))
+            #     for img in new_data:
+            #         Image.open(img+".tif").save(os.path.join(data_root, "NORMAL","NORMAL_"+str(counts)+".tif"))
+            #         counts += 1
         return img_ids
 
     def load_img(self, index):

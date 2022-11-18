@@ -1,3 +1,9 @@
+import pytorch_lightning as pl
+import torch.nn as nn
+from torch import optim
+import torch.nn.functional as F
+
+
 class LogisticRegression(pl.LightningModule):
 
     def __init__(self, feature_dim, num_classes, lr, weight_decay, max_epochs=100):
@@ -11,8 +17,8 @@ class LogisticRegression(pl.LightningModule):
                                 lr=self.hparams.lr,
                                 weight_decay=self.hparams.weight_decay)
         lr_scheduler = optim.lr_scheduler.MultiStepLR(optimizer,
-                                                      milestones=[int(self.hparams.max_epochs*0.6),
-                                                                  int(self.hparams.max_epochs*0.8)],
+                                                      milestones=[int(self.hparams.max_epochs * 0.6),
+                                                                  int(self.hparams.max_epochs * 0.8)],
                                                       gamma=0.1)
         return [optimizer], [lr_scheduler]
 

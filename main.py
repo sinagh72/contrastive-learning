@@ -1,20 +1,14 @@
 import os
 import matplotlib.pyplot as plt
 import torchvision
-
 from custom_dataset import CustomDataset, ContrastiveTransformations, train_aug
-from train import train_simclr
-
+from train import train_simclr, train_resnet
 plt.set_cmap('cividis')
 import matplotlib
-
 matplotlib.rcParams['lines.linewidth'] = 2.0
 import seaborn as sns
-
 sns.set()
-## PyTorch
 import torch
-import torch.utils.data as data
 
 
 def show_img(train, num_imgs=6, n_views=2):
@@ -49,16 +43,17 @@ if __name__ == "__main__":
 
     n_views = 2
 
-    train_dataset = CustomDataset(data_root=DATASET_PATH, mode="train", img_suffix='.tif',
-                                  transform=ContrastiveTransformations(train_aug, n_views=n_views))
-    # train = torch.utils.data.random_split(train_dataset, [0.7, 0.3], generator=torch.Generator().manual_seed(42))
+    train_dataset_contrastive = CustomDataset(data_root=DATASET_PATH + "/Train", mode="train", img_suffix='.tif',
+                                              transform=ContrastiveTransformations(train_aug, n_views=n_views))
 
     simclr_model = train_simclr(batch_size=256,
                                 max_epochs=2000,
-                                train_data=train_dataset,
+                                train_data=train_dataset_contrastive,
                                 checkpoint_path=CHECKPOINT_PATH,
                                 hidden_dim=128,
                                 lr=5e-4,
                                 temperature=0.07,
                                 weight_decay=1e-4,
                                 n_views=n_views)
+
+

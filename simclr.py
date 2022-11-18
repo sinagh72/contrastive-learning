@@ -7,6 +7,8 @@ from torch.nn import functional as F
 from PIL import Image
 import numpy as np
 import matplotlib.pyplot as plt
+
+
 class SimCLR(pl.LightningModule):
 
     def __init__(self, hidden_dim, lr, temperature, weight_decay, max_epochs=500, n_views=2):
