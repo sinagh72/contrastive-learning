@@ -4,7 +4,7 @@ import torch
 
 from custom_dataset import CustomDataset
 from simclr import SimCLR
-from train import prepare_data_features, train_resnet
+from train import prepare_data_features, train_resnet, train_logreg
 
 if __name__ == "__main__":
     # Path to the folder where the datasets are/should be downloaded (e.g. CIFAR10)
@@ -28,21 +28,28 @@ if __name__ == "__main__":
     img_transforms = transforms.Compose([transforms.ToTensor(),
                                          transforms.Normalize((0.5,), (0.5,))])
 
-    train_dataset_logreg = CustomDataset(data_root=DATASET_PATH + "/Train", mode="train", img_suffix='.tif',
+    train_dataset_logreg = CustomDataset(data_root=DATASET_PATH + "/Train", img_suffix='.tif',
                                          transform=img_transforms)
-    test_dataset_logreg = CustomDataset(data_root=DATASET_PATH + "/Test", mode="train", img_suffix='.tif',
+    test_dataset_logreg = CustomDataset(data_root=DATASET_PATH + "/Test", img_suffix='.tif',
                                         transform=img_transforms)
-
     simclr_model = SimCLR.load_from_checkpoint(os.path.join(CHECKPOINT_PATH, "SimCLR"))
 
     train_feats_simclr = prepare_data_features(simclr_model, train_dataset_logreg)
     test_feats_simclr = prepare_data_features(simclr_model, test_dataset_logreg)
 
-    valid_dataset = CustomDataset(data_root=DATASET_PATH + "/Val", mode="train", img_suffix='.tif',
-                                  transform=img_transforms)
+    logreg_model, logreg_result = train_logreg(batch_size=64,
+                                               train_feats_data=train_feats_simclr,
+                                               test_feats_data=test_feats_simclr,
+                                               feature_dim=train_feats_simclr.tensors[0].shape[1],
+                                               num_classes=3,
+                                               lr=1e-3,
+                                               weight_decay=1e-3)
+
+    print(f"Accuracy on training set: {100 * logreg_result['train']:4.2f}%")
+    print(f"Accuracy on test set: {100 * logreg_result['test']:4.2f}%")
 
     resnet_model, resnet_result = train_resnet(batch_size=64,
-                                               num_classes=10,
+                                               num_classes=3,
                                                lr=1e-3,
                                                weight_decay=2e-4,
                                                max_epochs=100)

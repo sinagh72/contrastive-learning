@@ -41,11 +41,10 @@ def train_aug(image):
 
 class CustomDataset(Dataset):
 
-    def __init__(self, data_root, mode, img_format="L", img_suffix='.png', transform=train_aug, img_size=IMAGE_SIZE):
+    def __init__(self, data_root, img_format="L", img_suffix='.png', transform=train_aug, img_size=IMAGE_SIZE):
         self.data_root = data_root
         self.img_suffix = img_suffix
         self.transform = transform
-        self.mode = mode
         self.img_size = img_size
         self.img_format = img_format
         self.img_ids = self.get_img_ids(self.data_root)

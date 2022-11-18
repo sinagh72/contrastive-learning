@@ -63,21 +63,26 @@ class SimCLR(pl.LightningModule):
         nll = nll.mean()
 
         # Logging loss
-        self.log(mode + '_loss', nll, sync_dist=True)
+        # self.log(mode + '_loss', nll, sync_dist=True)
         # Get ranking position of positive example
         comb_sim = torch.cat([cos_sim[pos_mask][:, None],  # First position positive example
                               cos_sim.masked_fill(pos_mask, -9e15)],
                              dim=-1)
         sim_argsort = comb_sim.argsort(dim=-1, descending=True).argmin(dim=-1)
         # Logging ranking metrics
-        self.log(mode + '_acc_top1', (sim_argsort == 0).float().mean(), sync_dist=True)
-        self.log(mode + '_acc_top5', (sim_argsort < 5).float().mean(), sync_dist=True)
-        self.log(mode + '_acc_mean_pos', 1 + sim_argsort.float().mean(), sync_dist=True)
+        log_dict = {mode + '_loss': nll,
+                    mode + '_acc_top1': (sim_argsort == 0).float().mean(),
+                    mode + '_acc_top5': (sim_argsort < 5).float().mean(),
+                    mode + '_acc_mean_pos': 1 + sim_argsort.float().mean()}
+
+        self.log_dict(log_dict, sync_dist=True)
+        # self.log(mode + '_acc_top5', (sim_argsort < 5).float().mean(), sync_dist=True)
+        # self.log(mode + '_acc_mean_pos', 1 + sim_argsort.float().mean(), sync_dist=True)
 
         return nll
 
     def training_step(self, batch, batch_idx):
         return self.info_nce_loss(batch, mode='train')
 
-    # def validation_step(self, batch, batch_idx):
-    #     self.info_nce_loss(batch, mode='val')
+    def validation_step(self, batch, batch_idx):
+        self.info_nce_loss(batch, mode='val')
