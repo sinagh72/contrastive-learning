@@ -51,8 +51,8 @@ if __name__ == "__main__":
     val_dataset_contrastive = CustomDataset(data_root=DATASET_PATH + "/Test",  img_suffix='.tif',
                                             transform=ContrastiveTransformations(train_aug, n_views=n_views))
 
-    simclr_model = train_simclr(batch_size=64,
-                                max_epochs=10,
+    simclr_model = train_simclr(batch_size=256,
+                                max_epochs=2000,
                                 train_data=train_dataset_contrastive,
                                 val_data=val_dataset_contrastive,
                                 checkpoint_path=CHECKPOINT_PATH,
