@@ -27,8 +27,8 @@ class ResNet(pl.LightningModule):
         loss = F.cross_entropy(preds, labels)
         acc = (preds.argmax(dim=-1) == labels).float().mean()
 
-        self.log(mode + '_loss', loss)
-        self.log(mode + '_acc', acc)
+        self.log(mode + '_loss', loss, on_epoch=True, prog_bar=True)
+        self.log(mode + '_acc', acc, on_epoch=True, prog_bar=True)
         return loss
 
     def training_step(self, batch, batch_idx):

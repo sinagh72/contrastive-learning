@@ -14,7 +14,7 @@ from simclr import SimCLR
 NUM_WORKERS = os.cpu_count()
 device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
 devices = torch.cuda.device_count()
-devices = 5
+# devices = 5
 strategy = None if devices == 1 else DDPStrategy(find_unused_parameters=False)
 
 
@@ -64,14 +64,14 @@ def train_logreg(batch_size, train_feats_data, test_feats_data, checkpoint_path,
                                                     save_weights_only=True, mode='max', monitor='val_acc'),
                                     LearningRateMonitor("epoch")],
                          enable_progress_bar=False,
-                         check_val_every_n_epoch=1)
+                         log_every_n_steps=1)
     trainer.logger._default_hp_metric = None
 
     # Data loaders
     train_loader = DataLoader(train_feats_data, batch_size=batch_size, shuffle=True,
-                              drop_last=False, pin_memory=True, num_workers=0)
+                              drop_last=False, pin_memory=True, num_workers=NUM_WORKERS)
     test_loader = DataLoader(test_feats_data, batch_size=batch_size, shuffle=False,
-                             drop_last=False, pin_memory=True, num_workers=0)
+                             drop_last=False, pin_memory=True, num_workers=NUM_WORKERS)
 
     # Check whether pretrained model exists. If yes, load it and skip training
     if os.path.isfile(model_path):
@@ -100,7 +100,7 @@ def prepare_data_features(model, dataset):
     network.to(device)
 
     # Encode all images
-    data_loader = DataLoader(dataset, batch_size=64, num_workers=NUM_WORKERS, shuffle=False, drop_last=False)
+    data_loader = DataLoader(dataset, batch_size=64, num_workers=1, shuffle=False, drop_last=False)
     feats, labels = [], []
     for batch in tqdm(data_loader):
         batch_imgs = batch["img"].to(device)
@@ -110,8 +110,8 @@ def prepare_data_features(model, dataset):
 
     feats = torch.cat(feats, dim=0)
     labels = torch.cat(labels, dim=0)
-
-    # Sort images by labels
+    #
+    # # Sort images by labels
     labels, idxs = labels.sort()
     feats = feats[idxs]
 
@@ -126,7 +126,7 @@ def train_resnet(batch_size, train_data, test_data, checkpoint_path, max_epochs=
                          max_epochs=max_epochs,
                          callbacks=[ModelCheckpoint(save_weights_only=True, mode="max", monitor="val_acc"),
                                     LearningRateMonitor("epoch")],
-                         check_val_every_n_epoch=1)
+                         log_every_n_steps=1)
     trainer.logger._default_hp_metric = None
 
     # Data loaders
