@@ -42,13 +42,13 @@ def train_aug(image):
 
 class OCTDataset(Dataset):
 
-    def __init__(self, data_root, img_format="L", img_suffix='.png', transform=train_aug, img_size=IMAGE_SIZE,
+    def __init__(self, data_root, img_type="L", img_suffix='.png', transform=train_aug, img_size=IMAGE_SIZE,
                  folders=None, mode="train"):
         self.data_root = data_root
         self.img_suffix = img_suffix
         self.transform = transform
         self.img_size = img_size
-        self.img_format = img_format
+        self.img_type = img_type
         self.folders = folders
         self.mode = mode
         self.img_ids = self.get_img_ids(self.data_root)
@@ -91,7 +91,7 @@ class OCTDataset(Dataset):
                    for item in self.folders):
                 continue
             folder = os.path.join(data_root, img_file, "TIFFs", "8bitTIFFs")
-            img_ids += [os.path.join(folder, str(id.split('.')[0])) for id in os.listdir(folder)]
+            img_ids += [os.path.join(folder, id) for id in os.listdir(folder)]
             # if "AMD" in folder:
             #     counts = len(os.listdir(os.path.join(data_root, "AMD")))
             #     for img in new_data:
@@ -112,5 +112,5 @@ class OCTDataset(Dataset):
 
     def load_img(self, index):
         img_id = self.img_ids[index]
-        img = Image.open(img_id + self.img_format).convert(self.img_format)
+        img = Image.open(img_id).convert(self.img_type)
         return img

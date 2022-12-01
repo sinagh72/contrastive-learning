@@ -3,8 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torchvision
 
-from OCT_dataset import OCTDataset
-from custom_dataset import CustomDataset, ContrastiveTransformations, train_aug
+from OCT_dataset import OCTDataset, ContrastiveTransformations, train_aug
 from train import train_simclr
 
 plt.set_cmap('cividis')
@@ -38,7 +37,7 @@ if __name__ == "__main__":
     # Path to the folder where the datasets are/should be downloaded (e.g. CIFAR10)
     DATASET_PATH = "./2014_BOE_Srinivasan_2/Publication_Dataset"
     # Path to the folder where the pretrained models are saved
-    CHECKPOINT_PATH = "./saved_models"
+    CHECKPOINT_PATH = "./saved_models/SimCLR/"
     # In this notebook, we use data loaders with heavier computational processing. It is recommended to use as many
     # workers as possible in a data loader, which corresponds to the number of CPU cores
     NUM_WORKERS = os.cpu_count()
@@ -74,7 +73,6 @@ if __name__ == "__main__":
                                     temperature=0.07,
                                     weight_decay=1e-4,
                                     n_views=N_VIEWS,
-                                    save_model_name="SimCLR_" + str(cv_step))
+                                    save_model_name="SimCLR_" + str(idx))
 
         idx += cv_step
-        print(str(idx))
