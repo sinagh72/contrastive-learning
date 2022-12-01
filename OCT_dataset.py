@@ -21,7 +21,7 @@ class ContrastiveTransformations(object):
 def train_aug(image):
     transfrom = transforms.Compose([transforms.Resize(128, InterpolationMode.BICUBIC),
                                     transforms.RandomHorizontalFlip(),
-                                    transforms.RandomRotation(),
+                                    transforms.RandomRotation(degrees=45),
                                     transforms.RandomResizedCrop(size=128, scale=(0.25, 0.75),
                                                                  interpolation=InterpolationMode.BICUBIC),
                                     transforms.RandomApply([
@@ -40,14 +40,17 @@ def train_aug(image):
     return img
 
 
-class CustomDataset(Dataset):
+class OCTDataset(Dataset):
 
-    def __init__(self, data_root, img_format="L", img_suffix='.png', transform=train_aug, img_size=IMAGE_SIZE):
+    def __init__(self, data_root, img_format="L", img_suffix='.png', transform=train_aug, img_size=IMAGE_SIZE,
+                 folders=None, mode="train"):
         self.data_root = data_root
         self.img_suffix = img_suffix
         self.transform = transform
         self.img_size = img_size
         self.img_format = img_format
+        self.folders = folders
+        self.mode = mode
         self.img_ids = self.get_img_ids(self.data_root)
 
     def __getitem__(self, index):
@@ -67,7 +70,7 @@ class CustomDataset(Dataset):
         elif "DME" in img_id:
             ann = 2
 
-        results = dict(img_id=img_id, img=img, y_true=ann)
+        results = dict(img_id=img_id, img_folder=img_id.split(self.data_root)[1].split("\\")[1], img=img, y_true=ann)
 
         return results
 
@@ -84,28 +87,30 @@ class CustomDataset(Dataset):
         img_filename_list = os.listdir(os.path.join(data_root))
         img_ids = []
         for img_file in img_filename_list:
-            # root = os.path.join(data_root, img_file, "TIFFs", "8bitTIFFs")
-            root = os.path.join(data_root, img_file)
-            img_ids += [os.path.join(root, str(id.split('.')[0])) for id in os.listdir(root)]
-            # if "AMD" in root:
+            if any(item == int(img_file.replace("AMD", "").replace("NORMAL", "").replace("DME", ""))
+                   for item in self.folders):
+                continue
+            folder = os.path.join(data_root, img_file, "TIFFs", "8bitTIFFs")
+            img_ids += [os.path.join(folder, str(id.split('.')[0])) for id in os.listdir(folder)]
+            # if "AMD" in folder:
             #     counts = len(os.listdir(os.path.join(data_root, "AMD")))
             #     for img in new_data:
-            #         Image.open(img+".tif").save(os.path.join(data_root, "AMD","AMD_"+str(counts)+".tif"))
+            #         Image.open(img + ".tif").save(os.path.join(data_root, "AMD", "AMD_" + str(counts) + ".tif"))
             #         counts += 1
             # elif "DME" in root:
             #     counts = len(os.listdir(os.path.join(data_root, "DME")))
             #     for img in new_data:
-            #         Image.open(img+".tif").save(os.path.join(data_root, "DME","DME_"+str(counts)+".tif"))
+            #         Image.open(img + ".tif").save(os.path.join(data_root, "DME", "DME_" + str(counts) + ".tif"))
             #         counts += 1
             #
             # elif "NORMAL" in root:
             #     counts = len(os.listdir(os.path.join(data_root, "Normal")))
             #     for img in new_data:
-            #         Image.open(img+".tif").save(os.path.join(data_root, "NORMAL","NORMAL_"+str(counts)+".tif"))
+            #         Image.open(img + ".tif").save(os.path.join(data_root, "NORMAL", "NORMAL_" + str(counts) + ".tif"))
             #         counts += 1
         return img_ids
 
     def load_img(self, index):
         img_id = self.img_ids[index]
-        img = Image.open(img_id + self.img_suffix).convert(self.img_format)
+        img = Image.open(img_id + self.img_format).convert(self.img_format)
         return img

@@ -18,16 +18,17 @@ devices = torch.cuda.device_count()
 strategy = None if devices == 1 else DDPStrategy(find_unused_parameters=False)
 
 
-def train_simclr(batch_size, max_epochs=500, train_data=None, val_data=None, checkpoint_path=None, **kwargs):
+def train_simclr(batch_size, max_epochs=500, train_data=None, val_data=None, checkpoint_path=None, save_model_name=None,
+                 **kwargs):
     pl.seed_everything(42)
-    model_path = os.path.join(checkpoint_path, 'SimCLR')
+    model_path = os.path.join(checkpoint_path, save_model_name)
     trainer = pl.Trainer(default_root_dir=model_path,
                          accelerator="gpu" if str(device).startswith("cuda") else "cpu",
                          devices=devices,
                          strategy=strategy,
                          max_epochs=max_epochs,
                          callbacks=[
-                             ModelCheckpoint(dirpath=model_path, filename="SimCLR",
+                             ModelCheckpoint(dirpath=model_path, filename=save_model_name,
                                              save_weights_only=True, mode='max', monitor='val_acc_top5'),
                              LearningRateMonitor('epoch')],
                          log_every_n_steps=1)
@@ -52,7 +53,7 @@ def train_simclr(batch_size, max_epochs=500, train_data=None, val_data=None, che
     return model
 
 
-def train_logreg(batch_size, train_feats_data, test_feats_data, checkpoint_path, max_epochs=100,
+def train_logreg(batch_size, train_feats_data, test_feats_data, checkpoint_path, log_every_n_steps, max_epochs=100,
                  **kwargs):
     model_path = os.path.join(checkpoint_path, 'LogisticRegression')
     trainer = pl.Trainer(default_root_dir=os.path.join(checkpoint_path, "LogisticRegression"),
@@ -63,9 +64,8 @@ def train_logreg(batch_size, train_feats_data, test_feats_data, checkpoint_path,
                          callbacks=[ModelCheckpoint(dirpath=model_path, filename="LogisticRegression",
                                                     save_weights_only=True, mode='max', monitor='val_acc'),
                                     LearningRateMonitor("epoch")],
-                         enable_progress_bar=False,
-                         log_every_n_steps=1)
-    trainer.logger._default_hp_metric = None
+                         log_every_n_steps=log_every_n_steps)
+    # trainer.logger._default_hp_metric = None
 
     # Data loaders
     train_loader = DataLoader(train_feats_data, batch_size=batch_size, shuffle=True,
@@ -92,7 +92,7 @@ def train_logreg(batch_size, train_feats_data, test_feats_data, checkpoint_path,
 
 
 @torch.no_grad()
-def prepare_data_features(model, dataset):
+def prepare_data_features(model, dataset, batch_size=64):
     # Prepare model
     network = deepcopy(model.convnet)
     network.fc = nn.Identity()  # Removing projection head g(.)
@@ -100,7 +100,7 @@ def prepare_data_features(model, dataset):
     network.to(device)
 
     # Encode all images
-    data_loader = DataLoader(dataset, batch_size=64, num_workers=1, shuffle=False, drop_last=False)
+    data_loader = DataLoader(dataset, batch_size=batch_size, num_workers=1, shuffle=False, drop_last=False)
     feats, labels = [], []
     for batch in tqdm(data_loader):
         batch_imgs = batch["img"].to(device)
@@ -118,7 +118,7 @@ def prepare_data_features(model, dataset):
     return TensorDataset(feats, labels)
 
 
-def train_resnet(batch_size, train_data, test_data, checkpoint_path, max_epochs=100, **kwargs):
+def train_resnet(batch_size, train_data, test_data, checkpoint_path, log_every_n_steps, max_epochs=100, **kwargs):
     trainer = pl.Trainer(default_root_dir=os.path.join(checkpoint_path, "ResNet"),
                          accelerator="gpu" if str(device).startswith("cuda") else "cpu",
                          devices=devices,
@@ -126,7 +126,7 @@ def train_resnet(batch_size, train_data, test_data, checkpoint_path, max_epochs=
                          max_epochs=max_epochs,
                          callbacks=[ModelCheckpoint(save_weights_only=True, mode="max", monitor="val_acc"),
                                     LearningRateMonitor("epoch")],
-                         log_every_n_steps=1)
+                         log_every_n_steps=log_every_n_steps)
     trainer.logger._default_hp_metric = None
 
     # Data loaders

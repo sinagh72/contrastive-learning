@@ -1,1 +1,4 @@
 /saved_models/SimCLR/lightning_logs/
+/saved_models/ResNet/lightning_logs/
+/saved_models/LogisticRegression/lightning_logs/
+

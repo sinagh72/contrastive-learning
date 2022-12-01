@@ -28,8 +28,8 @@ class LogisticRegression(pl.LightningModule):
         loss = F.cross_entropy(preds, labels)
         acc = (preds.argmax(dim=-1) == labels).float().mean()
 
-        self.log(mode + '_loss', loss, on_epoch=True, prog_bar=True)
-        self.log(mode + '_acc', acc, on_epoch=True, prog_bar=True)
+        self.log(mode + '_loss', loss, prog_bar=True, sync_dist=True)
+        self.log(mode + '_acc', acc,  prog_bar=True, sync_dist=True)
         return loss
 
     def training_step(self, batch, batch_idx):

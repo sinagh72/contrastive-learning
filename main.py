@@ -1,6 +1,9 @@
 import os
 import matplotlib.pyplot as plt
+import numpy as np
 import torchvision
+
+from OCT_dataset import OCTDataset
 from custom_dataset import CustomDataset, ContrastiveTransformations, train_aug
 from train import train_simclr
 
@@ -28,6 +31,10 @@ def show_img(train, num_imgs=6, n_views=2):
 
 
 if __name__ == "__main__":
+    N_VIEWS = 2
+    CV = 5
+    PATIENTS = 15
+    cv_step = PATIENTS // CV
     # Path to the folder where the datasets are/should be downloaded (e.g. CIFAR10)
     DATASET_PATH = "./2014_BOE_Srinivasan_2/Publication_Dataset"
     # Path to the folder where the pretrained models are saved
@@ -44,20 +51,30 @@ if __name__ == "__main__":
     print("Device:", device)
     print("Number of workers:", NUM_WORKERS)
 
-    n_views = 2
+    idx = np.array(range(1, cv_step + 1))
 
-    train_dataset_contrastive = CustomDataset(data_root=DATASET_PATH + "/Train",  img_suffix='.tif',
-                                              transform=ContrastiveTransformations(train_aug, n_views=n_views))
-    val_dataset_contrastive = CustomDataset(data_root=DATASET_PATH + "/Test",  img_suffix='.tif',
-                                            transform=ContrastiveTransformations(train_aug, n_views=n_views))
-    print(len(train_dataset_contrastive))
-    simclr_model = train_simclr(batch_size=448,
-                                max_epochs=2000,
-                                train_data=train_dataset_contrastive,
-                                val_data=val_dataset_contrastive,
-                                checkpoint_path=CHECKPOINT_PATH,
-                                hidden_dim=128,
-                                lr=5e-4,
-                                temperature=0.07,
-                                weight_decay=1e-4,
-                                n_views=n_views)
+    for i in range(CV):
+        val_dataset = OCTDataset(data_root="./2014_BOE_Srinivasan_2/Publication_Dataset/original data",
+                                 img_suffix='.tif',
+                                 transform=ContrastiveTransformations(train_aug, n_views=N_VIEWS),
+                                 folders=idx)
+        # print(set(np.array(range(1, PATIENTS + 1))) -set(choices))
+        train_dataset = OCTDataset(data_root="./2014_BOE_Srinivasan_2/Publication_Dataset/original data",
+                                   img_suffix='.tif',
+                                   transform=ContrastiveTransformations(train_aug, n_views=N_VIEWS),
+                                   folders=list(set(np.array(range(1, PATIENTS + 1))) - set(idx)))
+
+        simclr_model = train_simclr(batch_size=448,
+                                    max_epochs=2000,
+                                    train_data=train_dataset,
+                                    val_data=val_dataset,
+                                    checkpoint_path=CHECKPOINT_PATH,
+                                    hidden_dim=128,
+                                    lr=5e-4,
+                                    temperature=0.07,
+                                    weight_decay=1e-4,
+                                    n_views=N_VIEWS,
+                                    save_model_name="SimCLR_" + str(cv_step))
+
+        idx += cv_step
+        print(str(idx))
