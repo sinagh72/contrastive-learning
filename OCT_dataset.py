@@ -15,7 +15,7 @@ class ContrastiveTransformations(object):
         self.n_views = n_views
 
     def __call__(self, x):
-        return [self.base_transforms(x) for i in range(self.n_views)]
+        return [self.base_transforms(x) for _ in range(self.n_views)]
 
 
 def train_aug(image):
@@ -69,8 +69,8 @@ class OCTDataset(Dataset):
             ann = 1
         elif "DME" in img_id:
             ann = 2
-
-        results = dict(img_id=img_id, img_folder=img_id.split(self.data_root)[1].split("\\")[1], img=img, y_true=ann)
+        img_id = img_id.replace("\\", "/")
+        results = dict(img_id=img_id, img_folder=img_id.split(self.data_root)[1].split("/")[1], img=img, y_true=ann)
 
         return results
 

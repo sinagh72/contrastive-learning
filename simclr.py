@@ -36,7 +36,7 @@ class SimCLR(pl.LightningModule):
     def info_nce_loss(self, batch, mode='train'):
         # list of augmentation list
         imgs = batch["img"]
-        # imgs is a tensor of (B*n_view, 3, H, W), for the batch of 64 we would have (128, 3, 128, 128)
+        # imgs is a tensor of (B*n_view, 3, H, W), for the batch=64 and n_view=2 we would have (128, 3, 128, 128)
         imgs = torch.cat(imgs, dim=0)
         # img_grid = torchvision.utils.make_grid(imgs, nrow=4, normalize=True, pad_value=0.9).cpu()
         # img_grid = img_grid.permute(1, 2, 0)
@@ -59,6 +59,7 @@ class SimCLR(pl.LightningModule):
         pos_mask = self_mask.roll(shifts=cos_sim.shape[0] // self.hparams.n_views, dims=0)
         # InfoNCE loss
         cos_sim = cos_sim / self.hparams.temperature
+        # -log( exp(sim(zi,zj)/t) / sum(exp(sim(zi,zk)/t)) )
         nll = -cos_sim[pos_mask] + torch.logsumexp(cos_sim, dim=-1)
         nll = nll.mean()
 
