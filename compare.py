@@ -47,15 +47,15 @@ if __name__ == "__main__":
     for i in range(CV):
         test_dataset = OCTDataset(data_root="./2014_BOE_Srinivasan_2/Publication_Dataset/original data",
                                   img_suffix='.tif',
-                                  transform=ContrastiveTransformations(train_aug, n_views=N_VIEWS),
+                                  transform=img_transforms,
                                   folders=idx)
 
         train_dataset = OCTDataset(data_root="./2014_BOE_Srinivasan_2/Publication_Dataset/original data",
                                    img_suffix='.tif',
-                                   transform=ContrastiveTransformations(train_aug, n_views=N_VIEWS),
+                                   transform=img_transforms,
                                    folders=idx)
 
-        simclr_model = SimCLR.load_from_checkpoint(os.path.join(CHECKPOINT_PATH, "SimCLR_" + str(idx),
+        simclr_model = SimCLR.load_from_checkpoint(os.path.join(CHECKPOINT_PATH, "SimCLR", "SimCLR_" + str(idx),
                                                                 "SimCLR_" + str(idx) + ".ckpt"))
 
         batch_size = 64
@@ -73,7 +73,7 @@ if __name__ == "__main__":
                                                    weight_decay=1e-3,
                                                    max_epochs=100,
                                                    log_every_n_steps=log_every_n_steps,
-                                                   save_model_name="LogisticRegression" + str(idx))
+                                                   save_model_name="LogisticRegression/LogisticRegression" + str(idx))
 
         print(f"Accuracy on training set: {100 * logreg_result['train']:4.2f}%")
         print(f"Accuracy on test set: {100 * logreg_result['test']:4.2f}%")
@@ -87,8 +87,9 @@ if __name__ == "__main__":
                                                    max_epochs=100,
                                                    num_classes=3,
                                                    log_every_n_steps=log_every_n_steps,
-                                                   save_model_name="ResNet" + str(idx))
+                                                   save_model_name="ResNet/ResNet" + str(idx))
 
         print(f"Accuracy on training set: {100 * resnet_result['train']:4.2f}%")
         print(f"Accuracy on test set: {100 * resnet_result['test']:4.2f}%")
 
+        idx += cv_step
