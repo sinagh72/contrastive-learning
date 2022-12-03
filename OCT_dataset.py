@@ -70,7 +70,7 @@ class OCTDataset(Dataset):
         elif "DME" in img_id:
             ann = 2
 
-        results = dict(img_id=img_id, img_folder=img_id.split(self.data_root)[1].split("\\")[1], img=img, y_true=ann)
+        results = dict(img_id=img_id, img_folder=img_id.split(self.data_root)[1].split("/")[1], img=img, y_true=ann)
 
         return results
 
