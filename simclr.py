@@ -62,7 +62,7 @@ class SimCLR(pl.LightningModule):
         cos_sim = cos_sim / self.hparams.temperature
         # -log( exp(sim(zi,zj)/t) / sum(exp(sim(zi,zk)/t)) )
         nll = -cos_sim[pos_mask] + torch.logsumexp(cos_sim, dim=-1)
-        nll = nll.mean()
+        # nll = nll.mean()
 
         # Logging loss
         # self.log(mode + '_loss', nll, sync_dist=True)
@@ -73,11 +73,11 @@ class SimCLR(pl.LightningModule):
         sim_argsort = comb_sim.argsort(dim=-1, descending=True).argmin(dim=-1)
         # Logging ranking metrics
         log_dict = {mode + '_loss': nll,
-                    mode + '_acc_top1': (sim_argsort == 0).float().mean(),
-                    mode + '_acc_top5': (sim_argsort < 5).float().mean(),
-                    mode + '_acc_mean_pos': 1 + sim_argsort.float().mean()}
+                    mode + '_acc_top1': (sim_argsort == 0).float(),
+                    mode + '_acc_top5': (sim_argsort < 5).float(),
+                    mode + '_acc_mean_pos': 1 + sim_argsort.float()}
 
-        self.log_dict(log_dict, sync_dist=True)
+        self.log_dict(log_dict, sync_dist=True, reduce_fx="mean")
         # self.log(mode + '_acc_top5', (sim_argsort < 5).float().mean(), sync_dist=True)
         # self.log(mode + '_acc_mean_pos', 1 + sim_argsort.float().mean(), sync_dist=True)
 

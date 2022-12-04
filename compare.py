@@ -53,7 +53,7 @@ if __name__ == "__main__":
         train_dataset = OCTDataset(data_root="./2014_BOE_Srinivasan_2/Publication_Dataset/original data",
                                    img_suffix='.tif',
                                    transform=img_transforms,
-                                   folders=idx)
+                                   folders=list(set(np.array(range(1, PATIENTS + 1))) - set(idx)))
 
         simclr_model = SimCLR.load_from_checkpoint(os.path.join(CHECKPOINT_PATH, "SimCLR", "SimCLR_" + str(idx),
                                                                 "SimCLR_" + str(idx) + ".ckpt"))
