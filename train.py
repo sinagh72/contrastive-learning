@@ -22,14 +22,14 @@ def train_simclr(batch_size, max_epochs=500, train_data=None, val_data=None, che
                  **kwargs):
     pl.seed_everything(42)
     model_path = os.path.join(checkpoint_path, save_model_name)
-    early_stopping = EarlyStopping(monitor="val_loss", patience=100, verbose=False, mode="min")
+    early_stopping = EarlyStopping(monitor="val_loss", patience=50, verbose=False, mode="min")
     trainer = pl.Trainer(default_root_dir=model_path,
                          accelerator="gpu" if str(device).startswith("cuda") else "cpu",
                          devices=devices,
                          strategy=strategy,
                          max_epochs=max_epochs,
                          callbacks=[
-                             #early_stopping,
+                             early_stopping,
                              ModelCheckpoint(dirpath=model_path, filename=save_model_name,
                                              save_weights_only=True, mode='min', monitor='val_loss'),
                              LearningRateMonitor('epoch')],
