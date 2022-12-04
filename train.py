@@ -12,19 +12,15 @@ from logistic_regression import LogisticRegression
 from simclr import SimCLR
 
 NUM_WORKERS = os.cpu_count()
-device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
-devices = torch.cuda.device_count()
-devices = 2
-strategy = None if devices == 1 else DDPStrategy(find_unused_parameters=False)
 
 
 def train_simclr(batch_size, max_epochs=500, train_data=None, val_data=None, checkpoint_path=None, save_model_name=None,
-                 **kwargs):
+                 devices=1, strategy=None, **kwargs):
     pl.seed_everything(42)
     model_path = os.path.join(checkpoint_path, save_model_name)
     early_stopping = EarlyStopping(monitor="val_loss", patience=50, verbose=False, mode="min")
     trainer = pl.Trainer(default_root_dir=model_path,
-                         accelerator="gpu" if str(device).startswith("cuda") else "cpu",
+                         accelerator="gpu" if str(devices).startswith("cuda") else "cpu",
                          devices=devices,
                          strategy=strategy,
                          max_epochs=max_epochs,
@@ -56,10 +52,10 @@ def train_simclr(batch_size, max_epochs=500, train_data=None, val_data=None, che
 
 
 def train_logreg(batch_size, train_feats_data, test_feats_data, checkpoint_path, log_every_n_steps, max_epochs=100,
-                 save_model_name=None, **kwargs):
+                 save_model_name=None, devices=1, strategy=None, **kwargs):
     model_path = os.path.join(checkpoint_path, save_model_name)
     trainer = pl.Trainer(default_root_dir=save_model_name,
-                         accelerator="gpu" if str(device).startswith("cuda") else "cpu",
+                         accelerator="gpu" if str(devices).startswith("cuda") else "cpu",
                          devices=devices,
                          strategy=strategy,
                          max_epochs=max_epochs,
@@ -94,7 +90,7 @@ def train_logreg(batch_size, train_feats_data, test_feats_data, checkpoint_path,
 
 
 @torch.no_grad()
-def prepare_data_features(model, dataset, batch_size=64):
+def prepare_data_features(model, dataset, device, batch_size=64):
     # Prepare model
     network = deepcopy(model.convnet)
     network.fc = nn.Identity()  # Removing projection head g(.)
@@ -121,9 +117,9 @@ def prepare_data_features(model, dataset, batch_size=64):
 
 
 def train_resnet(batch_size, train_data, test_data, checkpoint_path, log_every_n_steps, max_epochs=100,
-                 save_model_name=None, **kwargs):
+                 save_model_name=None, devices=1, strategy=None, **kwargs):
     trainer = pl.Trainer(default_root_dir=os.path.join(checkpoint_path, save_model_name),
-                         accelerator="gpu" if str(device).startswith("cuda") else "cpu",
+                         accelerator="gpu" if str(devices).startswith("cuda") else "cpu",
                          devices=devices,
                          strategy=strategy,
                          max_epochs=max_epochs,
@@ -139,7 +135,7 @@ def train_resnet(batch_size, train_data, test_data, checkpoint_path, log_every_n
                              drop_last=False, pin_memory=True, num_workers=NUM_WORKERS)
 
     # Check whether pretrained model exists. If yes, load it and skip training
-    pretrained_filename = os.path.join(checkpoint_path, save_model_name+".ckpt")
+    pretrained_filename = os.path.join(checkpoint_path, save_model_name + ".ckpt")
     if os.path.isfile(pretrained_filename):
         print("Found pretrained model at %s, loading..." % pretrained_filename)
         model = ResNet.load_from_checkpoint(pretrained_filename)
