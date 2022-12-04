@@ -64,7 +64,7 @@ if __name__ == "__main__":
                                  folders=list(set(np.array(range(1, PATIENTS + 1))) - set(idx)))
         print("len train:", len(train_dataset))
         print("len val: ", len(val_dataset))
-        simclr_model = train_simclr(batch_size=400,
+        simclr_model = train_simclr(batch_size=100,
                                     max_epochs=2000,
                                     train_data=train_dataset,
                                     val_data=val_dataset,
