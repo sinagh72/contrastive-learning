@@ -14,7 +14,7 @@ from simclr import SimCLR
 NUM_WORKERS = os.cpu_count()
 device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
 devices = torch.cuda.device_count()
-devices = 1
+devices = 2
 strategy = None if devices == 1 else DDPStrategy(find_unused_parameters=False)
 
 

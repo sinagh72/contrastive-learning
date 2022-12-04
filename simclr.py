@@ -38,7 +38,7 @@ class SimCLR(pl.LightningModule):
         imgs = batch["img"]
         # imgs is a tensor of (B*n_view, 3, H, W), for the batch=64 and n_view=2 we would have (128, 3, 128, 128)
         imgs = torch.cat(imgs, dim=0)
-        print(len(imgs))
+        print(self.device, len(imgs))
         # img_grid = torchvision.utils.make_grid(imgs, nrow=4, normalize=True, pad_value=0.9).cpu()
         # img_grid = img_grid.permute(1, 2, 0)
         #

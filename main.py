@@ -53,17 +53,18 @@ if __name__ == "__main__":
     idx = np.array(range(1, cv_step + 1))
 
     for i in range(CV):
-        val_dataset = OCTDataset(data_root="./2014_BOE_Srinivasan_2/Publication_Dataset/original data",
+        train_dataset = OCTDataset(data_root="./2014_BOE_Srinivasan_2/Publication_Dataset/original data",
                                  img_suffix='.tif',
                                  transform=ContrastiveTransformations(train_aug, n_views=N_VIEWS),
                                  folders=idx)
         # print(set(np.array(range(1, PATIENTS + 1))) -set(choices))
-        train_dataset = OCTDataset(data_root="./2014_BOE_Srinivasan_2/Publication_Dataset/original data",
+        val_dataset = OCTDataset(data_root="./2014_BOE_Srinivasan_2/Publication_Dataset/original data",
                                    img_suffix='.tif',
                                    transform=ContrastiveTransformations(train_aug, n_views=N_VIEWS),
                                    folders=list(set(np.array(range(1, PATIENTS + 1))) - set(idx)))
-
-        simclr_model = train_simclr(batch_size=448,
+        print("len train:",len(train_dataset))
+        print("len val: ",len(val_dataset))
+        simclr_model = train_simclr(batch_size=400,
                                     max_epochs=2000,
                                     train_data=train_dataset,
                                     val_data=val_dataset,
