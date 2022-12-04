@@ -20,7 +20,7 @@ def train_simclr(batch_size, max_epochs=500, train_data=None, val_data=None, che
     model_path = os.path.join(checkpoint_path, save_model_name)
     early_stopping = EarlyStopping(monitor="val_loss", patience=50, verbose=False, mode="min")
     trainer = pl.Trainer(default_root_dir=model_path,
-                         accelerator="gpu" if str(devices).startswith("cuda") else "cpu",
+                         accelerator="gpu",
                          devices=devices,
                          strategy=strategy,
                          max_epochs=max_epochs,

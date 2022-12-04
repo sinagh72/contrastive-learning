@@ -72,6 +72,7 @@ if __name__ == "__main__":
         simclr_model = train_simclr(devices=devices,
                                     strategy=strategy,
                                     batch_size=len(train_dataset) // devices,
+                                    # batch_size=100,
                                     max_epochs=2000,
                                     train_data=train_dataset,
                                     val_data=val_dataset,
