@@ -2,6 +2,7 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 import torchvision
+from pytorch_lightning.strategies import DDPStrategy
 
 from OCT_dataset import OCTDataset, ContrastiveTransformations, train_aug
 from train import train_simclr
@@ -30,6 +31,10 @@ def show_img(train, num_imgs=6, n_views=2):
 
 
 if __name__ == "__main__":
+    device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
+    devices = torch.cuda.device_count()
+    devices = 1
+    strategy = None if devices == 1 else DDPStrategy(find_unused_parameters=False)
     N_VIEWS = 2
     CV = 5
     PATIENTS = 15
@@ -64,7 +69,9 @@ if __name__ == "__main__":
                                  folders=list(set(np.array(range(1, PATIENTS + 1))) - set(idx)))
         print("len train:", len(train_dataset))
         print("len val: ", len(val_dataset))
-        simclr_model = train_simclr(batch_size=100,
+        simclr_model = train_simclr(devices=devices,
+                                    strategy=strategy,
+                                    batch_size=len(train_dataset) // devices,
                                     max_epochs=2000,
                                     train_data=train_dataset,
                                     val_data=val_dataset,

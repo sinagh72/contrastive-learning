@@ -62,7 +62,7 @@ class SimCLR(pl.LightningModule):
         cos_sim = cos_sim / self.hparams.temperature
         # -log( exp(sim(zi,zj)/t) / sum(exp(sim(zi,zk)/t)) )
         nll = -cos_sim[pos_mask] + torch.logsumexp(cos_sim, dim=-1)
-        nll = nll.sum()
+        nll = nll.mean()
 
         # Logging loss
         # self.log(mode + '_loss', nll, sync_dist=True)
@@ -73,18 +73,31 @@ class SimCLR(pl.LightningModule):
         sim_argsort = comb_sim.argsort(dim=-1, descending=True).argmin(dim=-1)
         # Logging ranking metrics
         log_dict = {mode + '_loss': nll,
-                    mode + '_acc_top1': (sim_argsort == 0).float().sum(),
-                    mode + '_acc_top5': (sim_argsort < 5).float().sum(),
-                    mode + '_acc_mean_pos': 1 + sim_argsort.float().sum()}
+                    mode + '_acc_top1': (sim_argsort == 0).float().mean(),
+                    mode + '_acc_top5': (sim_argsort < 5).float().mean(),
+                    mode + '_acc_mean_pos': 1 + sim_argsort.float().mean()}
 
-        self.log_dict(log_dict, prog_bar=True,sync_dist=True, reduce_fx="mean")
+        self.log_dict(log_dict, sync_dist=True)
         # self.log(mode + '_acc_top5', (sim_argsort < 5).float().mean(), sync_dist=True)
         # self.log(mode + '_acc_mean_pos', 1 + sim_argsort.float().mean(), sync_dist=True)
-
         return nll
 
     def training_step(self, batch, batch_idx):
         return self.info_nce_loss(batch, mode='train')
 
+    # def training_step_end(self, batch_parts):
+    #     # losses from each GPU
+    #     losses = batch_parts["train_loss"]
+    #     print(losses)
+    #     # do something with both outputs
+    #     return losses.mean()
+
     def validation_step(self, batch, batch_idx):
-        self.info_nce_loss(batch, mode='val')
+        return self.info_nce_loss(batch, mode='val')
+
+    # def validation_step_end(self, batch_parts):
+    #     # losses from each GPU
+    #     losses = batch_parts["val_loss"]
+    #     # do something with both outputs
+    #     return losses.mean()
+
