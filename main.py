@@ -33,7 +33,7 @@ def show_img(train, num_imgs=6, n_views=2):
 if __name__ == "__main__":
     device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
     devices = torch.cuda.device_count()
-    devices = 1
+    devices = 8
     strategy = None if devices == 1 else DDPStrategy(find_unused_parameters=False)
     N_VIEWS = 2
     CV = 5
