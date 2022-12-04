@@ -38,7 +38,7 @@ class SimCLR(pl.LightningModule):
         imgs = batch["img"]
         # imgs is a tensor of (B*n_view, 3, H, W), for the batch=64 and n_view=2 we would have (128, 3, 128, 128)
         imgs = torch.cat(imgs, dim=0)
-        print(self.device, len(imgs))
+        # print(self.device, len(imgs))
         # img_grid = torchvision.utils.make_grid(imgs, nrow=4, normalize=True, pad_value=0.9).cpu()
         # img_grid = img_grid.permute(1, 2, 0)
         #
@@ -77,27 +77,40 @@ class SimCLR(pl.LightningModule):
                     mode + '_acc_top5': (sim_argsort < 5).float().mean(),
                     mode + '_acc_mean_pos': 1 + sim_argsort.float().mean()}
 
-        self.log_dict(log_dict, sync_dist=True)
+        # self.log_dict(log_dict, sync_dist=True)
         # self.log(mode + '_acc_top5', (sim_argsort < 5).float().mean(), sync_dist=True)
         # self.log(mode + '_acc_mean_pos', 1 + sim_argsort.float().mean(), sync_dist=True)
-        return nll
+        return log_dict
 
     def training_step(self, batch, batch_idx):
         return self.info_nce_loss(batch, mode='train')
 
-    # def training_step_end(self, batch_parts):
-    #     # losses from each GPU
-    #     losses = batch_parts["train_loss"]
-    #     print(losses)
-    #     # do something with both outputs
-    #     return losses.mean()
+    def training_step_end(self, batch_parts):
+        # losses from each GPU
+        log_dict = {}
+        # do something with both outputs
+        for k, v in batch_parts.items():
+            log_dict[k] = batch_parts[k].mean()
+
+        self.log_dict(log_dict, prog_bar=True, on_epoch=True, on_step=False)
+        return batch_parts["train_loss"].mean()
+    # def training_epoch_end(self, training_step_outputs):
+    #     loss = torch.stack([x for x in training_step_outputs]).mean()
+    #     log_dict = {"train_loss": loss}
+    #     self.log_dict(log_dict, prog_bar=True)
 
     def validation_step(self, batch, batch_idx):
         return self.info_nce_loss(batch, mode='val')
 
-    # def validation_step_end(self, batch_parts):
-    #     # losses from each GPU
-    #     losses = batch_parts["val_loss"]
-    #     # do something with both outputs
-    #     return losses.mean()
+    def validation_step_end(self, batch_parts):
+        log_dict = {}
+        # do something with both outputs
+        for k, v in batch_parts.items():
+            log_dict[k] = batch_parts[k].mean()
 
+        self.log_dict(log_dict, prog_bar=True, on_epoch=True, on_step=False)
+        return batch_parts["val_loss"].mean()
+        # def validation_epoch_end(self, validation_step_outputs):
+    #     loss = torch.stack([x for x in validation_step_outputs]).mean()
+    #     log_dict = {"val_loss": loss}
+    #     self.log_dict(log_dict, prog_bar=True)
