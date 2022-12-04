@@ -92,7 +92,7 @@ class SimCLR(pl.LightningModule):
         for k, v in batch_parts.items():
             log_dict[k] = batch_parts[k].mean()
 
-        self.log_dict(log_dict, prog_bar=True, on_epoch=True, on_step=False)
+        self.log_dict(log_dict, prog_bar=True, on_epoch=True, on_step=False, sync_dist=True)
         return batch_parts["train_loss"].mean()
     # def training_epoch_end(self, training_step_outputs):
     #     loss = torch.stack([x for x in training_step_outputs]).mean()
@@ -108,7 +108,7 @@ class SimCLR(pl.LightningModule):
         for k, v in batch_parts.items():
             log_dict[k] = batch_parts[k].mean()
 
-        self.log_dict(log_dict, prog_bar=True, on_epoch=True, on_step=False)
+        self.log_dict(log_dict, prog_bar=True, on_epoch=True, on_step=False, sync_dist=True)
         return batch_parts["val_loss"].mean()
         # def validation_epoch_end(self, validation_step_outputs):
     #     loss = torch.stack([x for x in validation_step_outputs]).mean()
