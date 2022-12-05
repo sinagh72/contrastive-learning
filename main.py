@@ -34,7 +34,6 @@ if __name__ == "__main__":
     device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
     devices = torch.cuda.device_count()
     devices = 8
-    strategy = None if devices == 1 else DDPStrategy(find_unused_parameters=False)
     #strategy = "ddp"
     N_VIEWS = 2
     CV = 5
@@ -70,6 +69,7 @@ if __name__ == "__main__":
                                  folders=list(set(np.array(range(1, PATIENTS + 1))) - set(idx)))
         print("len train:", len(train_dataset))
         print("len val: ", len(val_dataset))
+        strategy = None if devices == 1 else DDPStrategy(find_unused_parameters=False)
         simclr_model = train_simclr(devices=devices,
                                     strategy=strategy,
                                     batch_size=len(train_dataset) // devices,

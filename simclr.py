@@ -110,7 +110,7 @@ class SimCLR(pl.LightningModule):
             log_dict[k] = batch_parts[k].mean()
 
         self.log_dict(log_dict, prog_bar=True, on_step=True, sync_dist=True)
-    #   return batch_parts["val_loss"].mean()
+        return batch_parts["val_loss"].mean()
         # def validation_epoch_end(self, validation_step_outputs):
     #     loss = torch.stack([x for x in validation_step_outputs]).mean()
     #     log_dict = {"val_loss": loss}
