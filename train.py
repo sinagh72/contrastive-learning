@@ -27,7 +27,7 @@ def train_simclr(batch_size, max_epochs=500, train_data=None, val_data=None, che
                          callbacks=[
                              early_stopping,
                              ModelCheckpoint(dirpath=model_path, filename=save_model_name,
-                                             save_weights_only=True, mode='min', monitor='val_loss'),
+                                             save_weights_only=True, mode='min', monitor='val_loss_epoch'),
                              LearningRateMonitor('epoch')],
                          log_every_n_steps=1)
     trainer.logger._default_hp_metric = None  # Optional logging argument that we don't need
