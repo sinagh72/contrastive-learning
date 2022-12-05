@@ -35,6 +35,7 @@ if __name__ == "__main__":
     devices = torch.cuda.device_count()
     devices = 8
     strategy = None if devices == 1 else DDPStrategy(find_unused_parameters=False)
+    #strategy = "ddp"
     N_VIEWS = 2
     CV = 5
     PATIENTS = 15
@@ -73,7 +74,7 @@ if __name__ == "__main__":
                                     strategy=strategy,
                                     batch_size=len(train_dataset) // devices,
                                     # batch_size=100,
-                                    max_epochs=2000,
+                                    max_epochs=10,
                                     train_data=train_dataset,
                                     val_data=val_dataset,
                                     checkpoint_path=CHECKPOINT_PATH,

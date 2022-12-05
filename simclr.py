@@ -73,9 +73,10 @@ class SimCLR(pl.LightningModule):
         sim_argsort = comb_sim.argsort(dim=-1, descending=True).argmin(dim=-1)
         # Logging ranking metrics
         log_dict = {mode + '_loss': nll,
-                    mode + '_acc_top1': (sim_argsort == 0).float().mean(),
-                    mode + '_acc_top5': (sim_argsort < 5).float().mean(),
-                    mode + '_acc_mean_pos': 1 + sim_argsort.float().mean()}
+                    #mode + '_acc_top1': (sim_argsort == 0).float().mean(),
+                    #mode + '_acc_top5': (sim_argsort < 5).float().mean(),
+                    #mode + '_acc_mean_pos': 1 + sim_argsort.float().mean()
+        }
 
         # self.log_dict(log_dict, sync_dist=True)
         # self.log(mode + '_acc_top5', (sim_argsort < 5).float().mean(), sync_dist=True)
@@ -92,7 +93,7 @@ class SimCLR(pl.LightningModule):
         for k, v in batch_parts.items():
             log_dict[k] = batch_parts[k].mean()
 
-        self.log_dict(log_dict, prog_bar=True, on_epoch=True, on_step=False, sync_dist=True)
+        self.log_dict(log_dict, prog_bar=True, on_step=True, sync_dist=True)
         return batch_parts["train_loss"].mean()
     # def training_epoch_end(self, training_step_outputs):
     #     loss = torch.stack([x for x in training_step_outputs]).mean()
@@ -108,8 +109,8 @@ class SimCLR(pl.LightningModule):
         for k, v in batch_parts.items():
             log_dict[k] = batch_parts[k].mean()
 
-        self.log_dict(log_dict, prog_bar=True, on_epoch=True, on_step=False, sync_dist=True)
-        return batch_parts["val_loss"].mean()
+        self.log_dict(log_dict, prog_bar=True, on_step=True, sync_dist=True)
+    #   return batch_parts["val_loss"].mean()
         # def validation_epoch_end(self, validation_step_outputs):
     #     loss = torch.stack([x for x in validation_step_outputs]).mean()
     #     log_dict = {"val_loss": loss}
