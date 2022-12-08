@@ -26,23 +26,14 @@ class LogisticRegression(pl.LightningModule):
                                                       gamma=0.1)
         return [optimizer], [lr_scheduler]
 
-    def _calculate_loss(self, batch, mode='train'):
+    def _calculate_loss(self, batch):
         feats, labels = batch
         preds = self.model(feats)
         loss = F.cross_entropy(preds, labels)
-        print(preds.argmax(dim=-1).shape)
-        print(labels.shape)
-        out = accuracy(preds=preds.argmax(dim=-1).to(torch.int), target=labels.to(torch.int),
-                       task="multiclass", num_classes=3)
-        acc = (preds.argmax(dim=-1) == labels).float().mean()
-
-        log_dict = {mode + "_confusion": out,
-                    mode + "_loss": loss,
-                    mode + "_acc": acc}
-        return log_dict
+        return {"loss": loss, "preds": preds, "labels": labels}
 
     def training_step(self, batch, batch_idx):
-        return self._calculate_loss(batch, mode='train')
+        return self._calculate_loss(batch)
 
     def training_step_end(self, batch_parts):
         # losses from each GPU

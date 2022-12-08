@@ -46,7 +46,7 @@ class SimCLR(pl.LightningModule):
         cos_sim = cos_sim / self.hparams.temperature
         # -log( exp(sim(zi,zj)/t) / sum(exp(sim(zi,zk)/t)) )
         nll = -cos_sim[pos_mask] + torch.logsumexp(cos_sim, dim=-1)
-        nll = nll.mean()
+        # nll = nll.mean()
 
         # Logging loss
         # self.log(mode + '_loss', nll, sync_dist=True)
@@ -56,7 +56,7 @@ class SimCLR(pl.LightningModule):
                              dim=-1)
         sim_argsort = comb_sim.argsort(dim=-1, descending=True).argmin(dim=-1)
 
-        return nll, sim_argsort
+        return nll
 
     def compute_loss(self, batch, mode='train'):
         # list of augmentation list
@@ -75,7 +75,7 @@ class SimCLR(pl.LightningModule):
         # plt.close()
         # Encode all images (B*n_view, hidden_dim), hidden_dim=128 in this case
         feats = self.convnet(imgs)
-        nll, sim_argsort = self.info_nce_loss(feats)
+        nll = self.info_nce_loss(feats)
         # Logging ranking metrics
         # log_dict = {mode + '_loss': nll,
         # mode + '_acc_top1': (sim_argsort == 0).float().mean(),
@@ -86,27 +86,23 @@ class SimCLR(pl.LightningModule):
         # self.log_dict(log_dict, sync_dist=True)
         # self.log(mode + '_acc_top5', (sim_argsort < 5).float().mean(), sync_dist=True)
         # self.log(mode + '_acc_mean_pos', 1 + sim_argsort.float().mean(), sync_dist=True)
-        return {"loss": nll, "feats": feats}
+        counts = 1.0 if nll.numel() == 0 else nll.size(dim=0)
+        log_dict = {"loss": nll.sum(), "count": float(counts)}
+        return log_dict
 
     def training_step(self, batch, batch_idx):
         return self.compute_loss(batch, mode='train')
 
     def training_step_end(self, batch_parts):
-        # losses from each GPU
-        # log_dict = {}
         # # do something with both outputs
         # for k, v in batch_parts.items():
         #     log_dict[k] = batch_parts[k].mean()
-        feats = batch_parts["feats"]
-        feats = torch.cat(feats, dim=0)
-        nll, sim_argsort = self.info_nce_loss(feats=feats)
-        self.log_dict(nll, prog_bar=True, on_step=True, sync_dist=True)
-        return nll
+        nll = batch_parts["loss"]
+        count = batch_parts["count"]
+        log_dict = {"train_loss": torch.div(nll, count)}
+        self.log_dict(log_dict, prog_bar=True, on_step=True, sync_dist=True)
 
-    # def training_epoch_end(self, training_step_outputs):
-    #     loss = torch.stack([x for x in training_step_outputs]).mean()
-    #     log_dict = {"train_loss": loss}
-    #     self.log_dict(log_dict, prog_bar=True)
+        return log_dict["train_loss"]
 
     def validation_step(self, batch, batch_idx):
         return self.compute_loss(batch, mode='val')
@@ -115,17 +111,17 @@ class SimCLR(pl.LightningModule):
         # log_dict = {}
         # do something with both outputs
         # for k, v in batch_parts.items():
-            # log_dict[k] = batch_parts[k].mean()
+        # log_dict[k] = batch_parts[k].mean()
 
         # self.log_dict(log_dict, prog_bar=True, on_step=True, sync_dist=True)
         # return batch_parts["val_loss"].mean()
         # def validation_epoch_end(self, validation_step_outputs):
-    #     loss = torch.stack([x for x in validation_step_outputs]).mean()
-    #     log_dict = {"val_loss": loss}
-    #     self.log_dict(log_dict, prog_bar=True)
-        feats = batch_parts["feats"]
-        print(feats.shape)
-        feats = torch.cat(feats, dim=0)
-        nll, sim_argsort = self.info_nce_loss(feats=feats)
-        self.log_dict(nll, prog_bar=True, on_step=True, sync_dist=True)
-        return nll
+        #     loss = torch.stack([x for x in validation_step_outputs]).mean()
+        #     log_dict = {"val_loss": loss}
+        #     self.log_dict(log_dict, prog_bar=True)
+        nll = batch_parts["loss"]
+        count = batch_parts["count"]
+        log_dict = {"val_loss": torch.div(nll, count)}
+        self.log_dict(log_dict, prog_bar=True, on_step=True, sync_dist=True)
+
+        return log_dict["val_loss"]
