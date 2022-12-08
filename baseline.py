@@ -27,15 +27,47 @@ class ResNet(pl.LightningModule):
         loss = F.cross_entropy(preds, labels)
         acc = (preds.argmax(dim=-1) == labels).float().mean()
 
-        self.log(mode + '_loss', loss, on_epoch=True, prog_bar=True, sync_dist=True)
-        self.log(mode + '_acc', acc, on_epoch=True, prog_bar=True, sync_dist=True)
-        return loss
+        log_dict = {mode + "_loss": loss,
+                    mode + "_acc": acc}
+        # self.log(mode + '_loss', loss, on_epoch=True, prog_bar=True, sync_dist=True)
+        # self.log(mode + '_acc', acc, on_epoch=True, prog_bar=True, sync_dist=True)
+        # return  loss
+        return log_dict
 
     def training_step(self, batch, batch_idx):
         return self._calculate_loss(batch, mode='train')
 
+    def training_step_end(self, batch_parts):
+        # losses from each GPU
+        log_dict = {}
+        # do something with both outputs
+        for k, v in batch_parts.items():
+            log_dict[k] = batch_parts[k].mean()
+
+        self.log_dict(log_dict, prog_bar=True, on_step=True, sync_dist=True)
+        return batch_parts["train_loss"].mean()
+
     def validation_step(self, batch, batch_idx):
-        self._calculate_loss(batch, mode='val')
+        return self._calculate_loss(batch, mode='val')
+
+    def validation_step_end(self, batch_parts):
+        log_dict = {}
+        # do something with both outputs
+        for k, v in batch_parts.items():
+            log_dict[k] = batch_parts[k].mean()
+
+        self.log_dict(log_dict, prog_bar=True, on_step=True, sync_dist=True)
+        return batch_parts["val_loss"].mean()
 
     def test_step(self, batch, batch_idx):
-        self._calculate_loss(batch, mode='test')
+        return self._calculate_loss(batch, mode='test')
+
+    def test_step_end(self, batch_parts):
+        # losses from each GPU
+        log_dict = {}
+        # do something with both outputs
+        for k, v in batch_parts.items():
+            log_dict[k] = batch_parts[k].mean()
+
+        self.log_dict(log_dict, prog_bar=True, on_step=True, sync_dist=True)
+        return batch_parts["test_loss"].mean()

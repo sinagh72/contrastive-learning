@@ -1,7 +1,11 @@
 import pytorch_lightning as pl
+import torch
 import torch.nn as nn
 from torch import optim
 import torch.nn.functional as F
+from torchmetrics import ConfusionMatrix
+from torchmetrics.functional import accuracy
+from torchmetrics.functional.classification import multiclass_confusion_matrix
 
 
 class LogisticRegression(pl.LightningModule):
@@ -26,17 +30,51 @@ class LogisticRegression(pl.LightningModule):
         feats, labels = batch
         preds = self.model(feats)
         loss = F.cross_entropy(preds, labels)
+        print(preds.argmax(dim=-1).shape)
+        print(labels.shape)
+        out = accuracy(preds=preds.argmax(dim=-1).to(torch.int), target=labels.to(torch.int),
+                       task="multiclass", num_classes=3)
         acc = (preds.argmax(dim=-1) == labels).float().mean()
 
-        self.log(mode + '_loss', loss, prog_bar=True, sync_dist=True)
-        self.log(mode + '_acc', acc,  prog_bar=True, sync_dist=True)
-        return loss
+        log_dict = {mode + "_confusion": out,
+                    mode + "_loss": loss,
+                    mode + "_acc": acc}
+        return log_dict
 
     def training_step(self, batch, batch_idx):
         return self._calculate_loss(batch, mode='train')
 
+    def training_step_end(self, batch_parts):
+        # losses from each GPU
+        log_dict = {}
+        # do something with both outputs
+        for k, v in batch_parts.items():
+            log_dict[k] = batch_parts[k].mean()
+
+        self.log_dict(log_dict, prog_bar=True, on_step=True, sync_dist=True)
+        return batch_parts["train_loss"].mean()
+
     def validation_step(self, batch, batch_idx):
-        self._calculate_loss(batch, mode='val')
+        return self._calculate_loss(batch, mode='val')
+
+    def validation_step_end(self, batch_parts):
+        log_dict = {}
+        # do something with both outputs
+        for k, v in batch_parts.items():
+            log_dict[k] = batch_parts[k].mean()
+
+        self.log_dict(log_dict, prog_bar=True, on_step=True, sync_dist=True)
+        return batch_parts["val_loss"].mean()
 
     def test_step(self, batch, batch_idx):
-        self._calculate_loss(batch, mode='test')
+        return self._calculate_loss(batch, mode='test')
+
+    def test_step_end(self, batch_parts):
+        # losses from each GPU
+        log_dict = {}
+        # do something with both outputs
+        for k, v in batch_parts.items():
+            log_dict[k] = batch_parts[k].mean()
+
+        self.log_dict(log_dict, prog_bar=True, on_step=True, sync_dist=True)
+        return batch_parts["test_loss"].mean()

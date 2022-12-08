@@ -1,6 +1,7 @@
 import math
 
 import numpy as np
+from pytorch_lightning.strategies import DDPStrategy
 from torchvision.transforms import transforms, InterpolationMode
 import os
 import torch
@@ -16,6 +17,9 @@ def _to_three_channel(x):
 
 
 if __name__ == "__main__":
+    device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
+    devices = torch.cuda.device_count()
+    devices = 1
     N_VIEWS = 2
     CV = 5
     PATIENTS = 15
@@ -45,49 +49,59 @@ if __name__ == "__main__":
     idx = np.array(range(1, cv_step + 1))
 
     for i in range(CV):
-        test_dataset = OCTDataset(data_root="./2014_BOE_Srinivasan_2/Publication_Dataset/original data",
-                                  img_suffix='.tif',
-                                  transform=img_transforms,
-                                  folders=idx)
-
         train_dataset = OCTDataset(data_root="./2014_BOE_Srinivasan_2/Publication_Dataset/original data",
                                    img_suffix='.tif',
                                    transform=img_transforms,
-                                   folders=list(set(np.array(range(1, PATIENTS + 1))) - set(idx)))
+                                   folders=idx)
+
+        test_dataset = OCTDataset(data_root="./2014_BOE_Srinivasan_2/Publication_Dataset/original data",
+                                  img_suffix='.tif',
+                                  transform=img_transforms,
+                                  folders=list(set(np.array(range(1, PATIENTS + 1))) - set(idx)))
 
         simclr_model = SimCLR.load_from_checkpoint(os.path.join(CHECKPOINT_PATH, "SimCLR", "SimCLR_" + str(idx),
                                                                 "SimCLR_" + str(idx) + ".ckpt"))
 
         batch_size = 64
-        train_feats_simclr = prepare_data_features(simclr_model, train_dataset, batch_size)
-        test_feats_simclr = prepare_data_features(simclr_model, test_dataset, batch_size)
-        log_every_n_steps = math.ceil(len(train_dataset) / batch_size)
+        print("training data preparation")
+        train_feats_simclr = prepare_data_features(model=simclr_model,
+                                                   dataset=train_dataset,
+                                                   device=device,
+                                                   batch_size=batch_size)
+        print("testing data preparation")
+        test_feats_simclr = prepare_data_features(model=simclr_model,
+                                                  dataset=test_dataset,
+                                                  device=device,
+                                                  batch_size=batch_size)
 
-        logreg_model, logreg_result = train_logreg(batch_size=batch_size,
+        strategy = None if devices == 1 else DDPStrategy(find_unused_parameters=False)
+        logreg_model, logreg_result = train_logreg(devices=devices,
+                                                   strategy=strategy,
+                                                   batch_size=batch_size,
                                                    train_feats_data=train_feats_simclr,
                                                    test_feats_data=test_feats_simclr,
                                                    feature_dim=train_feats_simclr.tensors[0].shape[1],
                                                    num_classes=3,
-                                                   checkpoint_path=CHECKPOINT_PATH,
+                                                   checkpoint_path=CHECKPOINT_PATH + "LogisticRegression",
                                                    lr=1e-3,
                                                    weight_decay=1e-3,
-                                                   max_epochs=100,
-                                                   log_every_n_steps=log_every_n_steps,
-                                                   save_model_name="LogisticRegression/LogisticRegression" + str(idx))
+                                                   max_epochs=1,
+                                                   save_model_name="LogisticRegression" + str(idx))
 
         print(f"Accuracy on training set: {100 * logreg_result['train']:4.2f}%")
         print(f"Accuracy on test set: {100 * logreg_result['test']:4.2f}%")
-
-        resnet_model, resnet_result = train_resnet(batch_size=batch_size,
+        strategy = None if devices == 1 else DDPStrategy(find_unused_parameters=False)
+        resnet_model, resnet_result = train_resnet(devices=devices,
+                                                   strategy=strategy,
+                                                   batch_size=batch_size,
                                                    train_data=train_dataset,
                                                    test_data=test_dataset,
                                                    lr=1e-3,
                                                    weight_decay=2e-4,
-                                                   checkpoint_path=CHECKPOINT_PATH,
+                                                   checkpoint_path=CHECKPOINT_PATH + "/ResNet",
                                                    max_epochs=100,
                                                    num_classes=3,
-                                                   log_every_n_steps=log_every_n_steps,
-                                                   save_model_name="ResNet/ResNet" + str(idx))
+                                                   save_model_name="ResNet" + str(idx))
 
         print(f"Accuracy on training set: {100 * resnet_result['train']:4.2f}%")
         print(f"Accuracy on test set: {100 * resnet_result['test']:4.2f}%")
