@@ -54,7 +54,7 @@ def train_simclr(batch_size, max_epochs=500, train_data=None, val_data=None, che
 def train_logreg(batch_size, train_feats_data, test_feats_data, checkpoint_path, max_epochs=100,
                  save_model_name=None, devices=1, strategy=None, **kwargs):
     model_path = os.path.join(checkpoint_path, save_model_name)
-    early_stopping = EarlyStopping(monitor="val_loss_epoch", patience=10, verbose=False, mode="min")
+    early_stopping = EarlyStopping(monitor="val_loss", patience=10, verbose=False, mode="min")
     trainer = pl.Trainer(default_root_dir=model_path,
                          accelerator="gpu",
                          devices=devices,
@@ -62,7 +62,7 @@ def train_logreg(batch_size, train_feats_data, test_feats_data, checkpoint_path,
                          max_epochs=max_epochs,
                          callbacks=[early_stopping,
                                     ModelCheckpoint(dirpath=model_path, filename=save_model_name,
-                                                    save_weights_only=True, mode='min', monitor='val_loss_epoch'),
+                                                    save_weights_only=True, mode='min', monitor='val_loss'),
                                     LearningRateMonitor("epoch")],
                          log_every_n_steps=1)
     trainer.logger._default_hp_metric = None
@@ -92,10 +92,17 @@ def train_logreg(batch_size, train_feats_data, test_feats_data, checkpoint_path,
     train_result = trainer.test(model, train_loader, verbose=False)
     val_result = trainer.test(model, val_loader, verbose=False)
     test_result = trainer.test(model, test_loader, verbose=False)
-    print(train_result)
-    result = {"train": train_result[0]["test_acc_epoch"], "val": val_result[0]["test_acc_epoch"],
-              "test": test_result[0]["test_acc_epoch"]}
 
+    result = {"train": {"acc_normal": train_result[0]["test_acc_normal"],
+                        "acc_ADM": train_result[0]["test_acc_AMD"],
+                        "acc_DME": train_result[0]["test_acc_DME"]},
+              "val": {"acc_normal": val_result[0]["test_acc_normal"],
+                      "acc_ADM": val_result[0]["test_acc_AMD"],
+                      "acc_DME": val_result[0]["test_acc_DME"]},
+              "test": {"acc_normal": test_result[0]["test_acc_normal"],
+                       "acc_ADM": test_result[0]["test_acc_AMD"],
+                       "acc_DME": test_result[0]["test_acc_DME"]}
+              }
     return model, result
 
 
@@ -129,7 +136,7 @@ def prepare_data_features(model, dataset, device, batch_size=64):
 def train_resnet(batch_size, train_data, test_data, checkpoint_path, max_epochs=100,
                  save_model_name=None, devices=1, strategy=None, **kwargs):
     model_path = os.path.join(checkpoint_path, save_model_name)
-    early_stopping = EarlyStopping(monitor="val_loss_epoch", patience=10, verbose=False, mode="min")
+    early_stopping = EarlyStopping(monitor="val_loss", patience=10, verbose=False, mode="min")
     trainer = pl.Trainer(default_root_dir=model_path,
                          accelerator="gpu",
                          devices=devices,
@@ -138,7 +145,7 @@ def train_resnet(batch_size, train_data, test_data, checkpoint_path, max_epochs=
                          callbacks=[early_stopping,
                                     ModelCheckpoint(
                                         dirpath=model_path, filename=save_model_name, save_weights_only=True, mode="min"
-                                        , monitor="val_loss_epoch"),
+                                        , monitor="val_loss"),
                                     LearningRateMonitor("epoch")],
                          log_every_n_steps=1)
     trainer.logger._default_hp_metric = None
@@ -166,9 +173,18 @@ def train_resnet(batch_size, train_data, test_data, checkpoint_path, max_epochs=
 
     # Test best model on validation set
     train_result = trainer.test(model, train_loader, verbose=False)
-    valid_result = trainer.test(model, valid_loader, verbose=False)
+    val_result = trainer.test(model, valid_loader, verbose=False)
     test_result = trainer.test(model, test_loader, verbose=False)
-    result = {"train": train_result[0]["test_acc_epoch"], "val": valid_result[0]["test_acc_epoch"],
-              "test": test_result[0]["test_acc_epoch"]}
+
+    result = {"train": {"acc_normal": train_result[0]["test_acc_normal"],
+                        "acc_ADM": train_result[0]["test_acc_AMD"],
+                        "acc_DME": train_result[0]["test_acc_DME"]},
+              "val": {"acc_normal": val_result[0]["test_acc_normal"],
+                      "acc_ADM": val_result[0]["test_acc_AMD"],
+                      "acc_DME": val_result[0]["test_acc_DME"]},
+              "test": {"acc_normal": test_result[0]["test_acc_normal"],
+                       "acc_ADM": test_result[0]["test_acc_AMD"],
+                       "acc_DME": test_result[0]["test_acc_DME"]}
+              }
 
     return model, result

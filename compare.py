@@ -19,7 +19,7 @@ def _to_three_channel(x):
 if __name__ == "__main__":
     device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
     devices = torch.cuda.device_count()
-    devices = 1
+    devices = 8
     N_VIEWS = 2
     CV = 5
     PATIENTS = 15
@@ -87,9 +87,9 @@ if __name__ == "__main__":
                                                    weight_decay=1e-3,
                                                    max_epochs=1,
                                                    save_model_name="LogisticRegression" + str(idx))
-
-        print(f"Accuracy on training set: {100 * logreg_result['train']:4.2f}%")
-        print(f"Accuracy on test set: {100 * logreg_result['test']:4.2f}%")
+        print(f"Accuracy on training set:{logreg_result['train']}")
+        print(f"Accuracy on validation set: {logreg_result['val']}")
+        print(f"Accuracy on test set: {logreg_result['test']}")
         strategy = None if devices == 1 else DDPStrategy(find_unused_parameters=False)
         resnet_model, resnet_result = train_resnet(devices=devices,
                                                    strategy=strategy,
@@ -99,11 +99,12 @@ if __name__ == "__main__":
                                                    lr=1e-3,
                                                    weight_decay=2e-4,
                                                    checkpoint_path=CHECKPOINT_PATH + "/ResNet",
-                                                   max_epochs=100,
+                                                   max_epochs=1,
                                                    num_classes=3,
                                                    save_model_name="ResNet" + str(idx))
 
-        print(f"Accuracy on training set: {100 * resnet_result['train']:4.2f}%")
-        print(f"Accuracy on test set: {100 * resnet_result['test']:4.2f}%")
+        print(f"Accuracy on training set:{resnet_result['train']}")
+        print(f"Accuracy on validation set: {resnet_result['val']}")
+        print(f"Accuracy on test set: {resnet_result['test']}")
 
         idx += cv_step
