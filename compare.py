@@ -85,7 +85,7 @@ if __name__ == "__main__":
                                                    checkpoint_path=CHECKPOINT_PATH + "LogisticRegression",
                                                    lr=1e-3,
                                                    weight_decay=1e-3,
-                                                   max_epochs=1,
+                                                   max_epochs=100,
                                                    save_model_name="LogisticRegression" + str(idx))
         print(f"Accuracy on training set:{logreg_result['train']}")
         print(f"Accuracy on validation set: {logreg_result['val']}")
@@ -99,7 +99,7 @@ if __name__ == "__main__":
                                                    lr=1e-3,
                                                    weight_decay=2e-4,
                                                    checkpoint_path=CHECKPOINT_PATH + "/ResNet",
-                                                   max_epochs=1,
+                                                   max_epochs=100,
                                                    num_classes=3,
                                                    save_model_name="ResNet" + str(idx))
 
