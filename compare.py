@@ -87,7 +87,8 @@ if __name__ == "__main__":
                                                    weight_decay=1e-3,
                                                    max_epochs=100,
                                                    save_model_name="LogisticRegression" + str(idx))
-        with open('accuracy_logreg.txt', 'wa') as f:
+        with open('accuracy_logreg.txt', 'a') as f:
+            f.write("==================" + str(idx) + "==================")
             f.write('\n')
             f.write(logreg_result['train'])
             f.write(logreg_result['val'])
@@ -107,7 +108,8 @@ if __name__ == "__main__":
                                                    num_classes=3,
                                                    save_model_name="ResNet" + str(idx))
 
-        with open('accuracy_resnet.txt', 'wa') as f:
+        with open('accuracy_resnet.txt', 'a') as f:
+            f.write("==================" + str(idx) + "==================")
             f.write('\n')
             f.write(resnet_result['train'])
             f.write(resnet_result['val'])
