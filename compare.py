@@ -87,9 +87,13 @@ if __name__ == "__main__":
                                                    weight_decay=1e-3,
                                                    max_epochs=100,
                                                    save_model_name="LogisticRegression" + str(idx))
-        print(f"Accuracy on training set:{logreg_result['train']}")
-        print(f"Accuracy on validation set: {logreg_result['val']}")
-        print(f"Accuracy on test set: {logreg_result['test']}")
+        with open('accuracy_logreg.txt', 'wa') as f:
+            f.write('\n')
+            f.write(logreg_result['train'])
+            f.write(logreg_result['val'])
+            f.write(logreg_result['test'])
+            f.write('\n')
+
         strategy = None if devices == 1 else DDPStrategy(find_unused_parameters=False)
         resnet_model, resnet_result = train_resnet(devices=devices,
                                                    strategy=strategy,
@@ -102,6 +106,13 @@ if __name__ == "__main__":
                                                    max_epochs=100,
                                                    num_classes=3,
                                                    save_model_name="ResNet" + str(idx))
+
+        with open('accuracy_resnet.txt', 'wa') as f:
+            f.write('\n')
+            f.write(resnet_result['train'])
+            f.write(resnet_result['val'])
+            f.write(resnet_result['test'])
+            f.write('\n')
 
         print(f"Accuracy on training set:{resnet_result['train']}")
         print(f"Accuracy on validation set: {resnet_result['val']}")
