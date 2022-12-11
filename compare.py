@@ -90,9 +90,9 @@ if __name__ == "__main__":
         with open('accuracy_logreg.txt', 'a') as f:
             f.write("==================" + str(idx) + "==================")
             f.write('\n')
-            f.write(logreg_result['train'])
-            f.write(logreg_result['val'])
-            f.write(logreg_result['test'])
+            f.write(str(logreg_result['train']))
+            f.write('\n'+str(logreg_result['val']))
+            f.write('\n'+str(logreg_result['test']))
             f.write('\n')
 
         strategy = None if devices == 1 else DDPStrategy(find_unused_parameters=False)
@@ -111,9 +111,9 @@ if __name__ == "__main__":
         with open('accuracy_resnet.txt', 'a') as f:
             f.write("==================" + str(idx) + "==================")
             f.write('\n')
-            f.write(resnet_result['train'])
-            f.write(resnet_result['val'])
-            f.write(resnet_result['test'])
+            f.write(str(resnet_result['train']))
+            f.write('\n'+str(resnet_result['val']))
+            f.write('\n'+str(resnet_result['test']))
             f.write('\n')
 
         print(f"Accuracy on training set:{resnet_result['train']}")
