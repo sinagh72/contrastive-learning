@@ -51,7 +51,7 @@ def train_simclr(batch_size, max_epochs=500, train_data=None, val_data=None, che
     return model
 
 
-def train_logreg(batch_size, train_feats_data, test_feats_data, checkpoint_path, max_epochs=100,
+def train_logreg(batch_size, train_feats_data, val_feats_data, test_feats_data, checkpoint_path, max_epochs=100,
                  save_model_name=None, devices=1, strategy=None, **kwargs):
     model_path = os.path.join(checkpoint_path, save_model_name)
     early_stopping = EarlyStopping(monitor="val_loss", patience=10, verbose=False, mode="min")
@@ -66,13 +66,11 @@ def train_logreg(batch_size, train_feats_data, test_feats_data, checkpoint_path,
                                     LearningRateMonitor("epoch")],
                          log_every_n_steps=1)
     trainer.logger._default_hp_metric = None
-    training_dataset, validation_dataset = \
-        random_split(train_feats_data, [0.7, 0.3], generator=torch.Generator().manual_seed(42))
     # Data loaders
-    train_loader = DataLoader(training_dataset, batch_size=batch_size, shuffle=True,
+    train_loader = DataLoader(train_feats_data, batch_size=batch_size, shuffle=True,
                               drop_last=True, pin_memory=True, num_workers=NUM_WORKERS)
 
-    val_loader = DataLoader(validation_dataset, batch_size=batch_size, shuffle=False,
+    val_loader = DataLoader(val_feats_data, batch_size=batch_size, shuffle=False,
                             drop_last=False, pin_memory=True, num_workers=NUM_WORKERS)
 
     test_loader = DataLoader(test_feats_data, batch_size=batch_size, shuffle=False,
@@ -133,7 +131,7 @@ def prepare_data_features(model, dataset, device, batch_size=64):
     return TensorDataset(feats, labels)
 
 
-def train_resnet(batch_size, train_data, test_data, checkpoint_path, max_epochs=100,
+def train_resnet(batch_size, train_data, val_data, test_data, checkpoint_path, max_epochs=100,
                  save_model_name=None, devices=1, strategy=None, **kwargs):
     model_path = os.path.join(checkpoint_path, save_model_name)
     early_stopping = EarlyStopping(monitor="val_loss", patience=10, verbose=False, mode="min")
@@ -151,12 +149,9 @@ def train_resnet(batch_size, train_data, test_data, checkpoint_path, max_epochs=
     trainer.logger._default_hp_metric = None
 
     # Data loaders
-    training_dataset, validation_dataset = \
-        random_split(train_data, [0.7, 0.3], generator=torch.Generator().manual_seed(42))
-
-    train_loader = DataLoader(training_dataset, batch_size=batch_size, shuffle=True,
+    train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True,
                               drop_last=True, pin_memory=True, num_workers=NUM_WORKERS)
-    valid_loader = DataLoader(validation_dataset, batch_size=batch_size, shuffle=False,
+    valid_loader = DataLoader(val_data, batch_size=batch_size, shuffle=False,
                               drop_last=False, pin_memory=True, num_workers=NUM_WORKERS)
     test_loader = DataLoader(test_data, batch_size=batch_size, shuffle=False,
                              drop_last=False, pin_memory=True, num_workers=NUM_WORKERS)

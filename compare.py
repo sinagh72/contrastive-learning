@@ -2,6 +2,7 @@ import math
 
 import numpy as np
 from pytorch_lightning.strategies import DDPStrategy
+from torch.utils.data import random_split
 from torchvision.transforms import transforms, InterpolationMode
 import os
 import torch
@@ -59,15 +60,21 @@ if __name__ == "__main__":
                                   transform=img_transforms,
                                   folders=list(set(np.array(range(1, PATIENTS + 1))) - set(idx)))
 
+        training_set, val_set = random_split(train_dataset, [0.7, 0.3], generator=torch.Generator().manual_seed(42))
+
         simclr_model = SimCLR.load_from_checkpoint(os.path.join(CHECKPOINT_PATH, "SimCLR", "SimCLR_" + str(idx),
                                                                 "SimCLR_" + str(idx) + ".ckpt"))
-
         batch_size = 64
         print("training data preparation")
         train_feats_simclr = prepare_data_features(model=simclr_model,
-                                                   dataset=train_dataset,
+                                                   dataset=training_set,
                                                    device=device,
                                                    batch_size=batch_size)
+        print("validation data preparation")
+        val_feats_simclr = prepare_data_features(model=simclr_model,
+                                                 dataset=val_set,
+                                                 device=device,
+                                                 batch_size=batch_size)
         print("testing data preparation")
         test_feats_simclr = prepare_data_features(model=simclr_model,
                                                   dataset=test_dataset,
@@ -79,6 +86,7 @@ if __name__ == "__main__":
                                                    strategy=strategy,
                                                    batch_size=batch_size,
                                                    train_feats_data=train_feats_simclr,
+                                                   val_feats_data=val_feats_simclr,
                                                    test_feats_data=test_feats_simclr,
                                                    feature_dim=train_feats_simclr.tensors[0].shape[1],
                                                    num_classes=3,
@@ -91,15 +99,16 @@ if __name__ == "__main__":
             f.write("==================" + str(idx) + "==================")
             f.write('\n')
             f.write(str(logreg_result['train']))
-            f.write('\n'+str(logreg_result['val']))
-            f.write('\n'+str(logreg_result['test']))
+            f.write('\n' + str(logreg_result['val']))
+            f.write('\n' + str(logreg_result['test']))
             f.write('\n')
 
         strategy = None if devices == 1 else DDPStrategy(find_unused_parameters=False)
         resnet_model, resnet_result = train_resnet(devices=devices,
                                                    strategy=strategy,
                                                    batch_size=batch_size,
-                                                   train_data=train_dataset,
+                                                   train_data=training_set,
+                                                   val_data=val_set,
                                                    test_data=test_dataset,
                                                    lr=1e-3,
                                                    weight_decay=2e-4,
@@ -112,8 +121,8 @@ if __name__ == "__main__":
             f.write("==================" + str(idx) + "==================")
             f.write('\n')
             f.write(str(resnet_result['train']))
-            f.write('\n'+str(resnet_result['val']))
-            f.write('\n'+str(resnet_result['test']))
+            f.write('\n' + str(resnet_result['val']))
+            f.write('\n' + str(resnet_result['test']))
             f.write('\n')
 
         print(f"Accuracy on training set:{resnet_result['train']}")
