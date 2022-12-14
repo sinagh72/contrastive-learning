@@ -53,12 +53,16 @@ if __name__ == "__main__":
         train_dataset = OCTDataset(data_root="./2014_BOE_Srinivasan_2/Publication_Dataset/original data",
                                    img_suffix='.tif',
                                    transform=img_transforms,
-                                   folders=idx)
+                                   folders=idx,
+                                   extra_folder_names="TIFFs/8bitTIFFs"
+                                   )
 
         test_dataset = OCTDataset(data_root="./2014_BOE_Srinivasan_2/Publication_Dataset/original data",
                                   img_suffix='.tif',
                                   transform=img_transforms,
-                                  folders=list(set(np.array(range(1, PATIENTS + 1))) - set(idx)))
+                                  folders=list(set(np.array(range(1, PATIENTS + 1))) - set(idx)),
+                                  extra_folder_names="TIFFs/8bitTIFFs"
+                                  )
 
         training_set, val_set = random_split(train_dataset, [0.7, 0.3], generator=torch.Generator().manual_seed(42))
 

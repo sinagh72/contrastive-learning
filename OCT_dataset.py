@@ -43,8 +43,13 @@ def train_aug(image):
 class OCTDataset(Dataset):
 
     def __init__(self, data_root, img_type="L", img_suffix='.png', transform=train_aug, img_size=IMAGE_SIZE,
-                 folders=None, mode="train"):
+                 folders=None, mode="train", extra_folder_names="", classes=None):
+        if classes is None:
+            classes = [("NORMAL", 0),
+                       ("AMD", 1),
+                       ("DME", 2)]
         self.data_root = data_root
+        self.extra_folder_names = extra_folder_names
         self.img_suffix = img_suffix
         self.transform = transform
         self.img_size = img_size
@@ -52,6 +57,7 @@ class OCTDataset(Dataset):
         self.folders = folders
         self.mode = mode
         self.img_ids = self.get_img_ids(self.data_root)
+        self.classes = classes
 
     def __getitem__(self, index):
         img = self.load_img(index)
@@ -65,10 +71,11 @@ class OCTDataset(Dataset):
          - Normal -> 0
         """
         ann = 0
-        if "AMD" in img_id:
-            ann = 1
-        elif "DME" in img_id:
-            ann = 2
+        for c, v in self.classes:
+            if c in img_id:
+                ann = v
+                break
+
         img_id = img_id.replace("\\", "/")
 
         results = dict(img_id=img_id, img_folder=img_id.split(self.data_root)[1].split("/")[1], img=img, y_true=ann)
@@ -91,7 +98,7 @@ class OCTDataset(Dataset):
             if any(item == int(img_file.replace("AMD", "").replace("NORMAL", "").replace("DME", ""))
                    for item in self.folders):
                 continue
-            folder = os.path.join(data_root, img_file, "TIFFs", "8bitTIFFs")
+            folder = os.path.join(data_root, img_file, self.extra_folder_names)
             img_ids += [os.path.join(folder, id) for id in os.listdir(folder)]
             # if "AMD" in folder:
             #     counts = len(os.listdir(os.path.join(data_root, "AMD")))

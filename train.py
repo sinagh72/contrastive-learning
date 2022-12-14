@@ -18,7 +18,7 @@ def train_simclr(batch_size, max_epochs=500, train_data=None, val_data=None, che
                  devices=1, strategy=None, **kwargs):
     pl.seed_everything(42)
     model_path = os.path.join(checkpoint_path, save_model_name)
-    early_stopping = EarlyStopping(monitor="val_loss_epoch", patience=50, verbose=False, mode="min")
+    early_stopping = EarlyStopping(monitor="train_loss", patience=50, verbose=False, mode="min")
     trainer = pl.Trainer(default_root_dir=model_path,
                          accelerator="gpu",
                          devices=devices,
@@ -27,7 +27,7 @@ def train_simclr(batch_size, max_epochs=500, train_data=None, val_data=None, che
                          callbacks=[
                              early_stopping,
                              ModelCheckpoint(dirpath=model_path, filename=save_model_name,
-                                             save_weights_only=True, mode='min', monitor='val_loss_epoch'),
+                                             save_weights_only=True, mode='min', monitor='train_loss'),
                              LearningRateMonitor('epoch')],
                          log_every_n_steps=1)
     trainer.logger._default_hp_metric = None  # Optional logging argument that we don't need
@@ -40,11 +40,14 @@ def train_simclr(batch_size, max_epochs=500, train_data=None, val_data=None, che
         train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True,
                                   drop_last=True, pin_memory=True, num_workers=NUM_WORKERS)
 
-        val_loader = DataLoader(val_data, batch_size=batch_size, shuffle=False,
-                                drop_last=False, pin_memory=True, num_workers=NUM_WORKERS)
-
         model = SimCLR(max_epochs=max_epochs, **kwargs)
-        trainer.fit(model, train_loader, val_loader)
+        if val_data:
+            val_loader = DataLoader(val_data, batch_size=batch_size, shuffle=False,
+                                    drop_last=False, pin_memory=True, num_workers=NUM_WORKERS)
+
+            trainer.fit(model, train_loader, val_loader)
+        else:
+            trainer.fit(model, train_loader)
         # Load best checkpoint after training
         model = SimCLR.load_from_checkpoint(trainer.checkpoint_callback.best_model_path)
 

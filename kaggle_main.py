@@ -33,15 +33,15 @@ def show_img(train, num_imgs=6, n_views=2):
 if __name__ == "__main__":
     device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
     devices = torch.cuda.device_count()
-    devices = 1
+    devices = 8
     N_VIEWS = 2
     CV = 5
     PATIENTS = 15
     cv_step = PATIENTS // CV
     # Path to the folder where the datasets are/should be downloaded (e.g. CIFAR10)
-    DATASET_PATH = "./2014_BOE_Srinivasan_2/Publication_Dataset/original data"
+    DATASET_PATH = "./kaggle_oct/OCT2017_/train"
     # Path to the folder where the pretrained models are saved
-    CHECKPOINT_PATH = "./saved_models/SimCLR/"
+    CHECKPOINT_PATH = "./kaggle_saved_models/SimCLR/"
     # In this notebook, we use data loaders with heavier computational processing. It is recommended to use as many
     # workers as possible in a data loader, which corresponds to the number of CPU cores
     NUM_WORKERS = os.cpu_count()
@@ -58,27 +58,26 @@ if __name__ == "__main__":
 
     for i in range(CV):
         train_dataset = OCTDataset(data_root=DATASET_PATH,
-                                   img_suffix='.tif',
+                                   img_suffix='.jpeg',
                                    transform=ContrastiveTransformations(train_aug, n_views=N_VIEWS),
                                    folders=idx,
-                                   extra_folder_names="TIFFs/8bitTIFFs")
+                                   )
         # print(set(np.array(range(1, PATIENTS + 1))) -set(choices))
-        # val_dataset = OCTDataset(data_root=DATASET_PATH,
-        #                          img_suffix='.tif',
-        #                          transform=ContrastiveTransformations(train_aug, n_views=N_VIEWS),
-        #                          folders=list(set(np.array(range(1, PATIENTS + 1))) - set(idx)),
-        #                          extra_folder_names="TIFFs/8bitTIFFs")
-
+        val_dataset = OCTDataset(data_root=DATASET_PATH,
+                                 img_suffix='.jpeg',
+                                 transform=ContrastiveTransformations(train_aug, n_views=N_VIEWS),
+                                 folders=list(set(np.array(range(1, PATIENTS + 1))) - set(idx)),
+                                 )
         print("len train:", len(train_dataset))
-        # print("len val: ", len(val_dataset))
+        print("len val: ", len(val_dataset))
         strategy = None if devices == 1 else DDPStrategy(find_unused_parameters=False)
         simclr_model = train_simclr(devices=devices,
                                     strategy=strategy,
-                                    # batch_size=len(train_dataset) // devices,
-                                    batch_size=100,
+                                    batch_size=len(train_dataset) // devices,
+                                    # batch_size=100,
                                     max_epochs=2000,
                                     train_data=train_dataset,
-                                    # val_data=val_dataset,
+                                    val_data=val_dataset,
                                     checkpoint_path=CHECKPOINT_PATH,
                                     hidden_dim=128,
                                     lr=5e-4,
