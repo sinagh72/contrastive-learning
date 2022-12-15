@@ -61,19 +61,27 @@ if __name__ == "__main__":
                                    img_suffix='.jpeg',
                                    transform=ContrastiveTransformations(train_aug, n_views=N_VIEWS),
                                    folders=idx,
+                                   classes=[("NORMAL", 0),
+                                            ("CNV", 1),
+                                            ("DME", 2),
+                                            ("DRUSEN", 3)]
                                    )
         # print(set(np.array(range(1, PATIENTS + 1))) -set(choices))
         val_dataset = OCTDataset(data_root=DATASET_PATH,
                                  img_suffix='.jpeg',
                                  transform=ContrastiveTransformations(train_aug, n_views=N_VIEWS),
                                  folders=list(set(np.array(range(1, PATIENTS + 1))) - set(idx)),
+                                 classes=[("NORMAL", 0),
+                                          ("CNV", 1),
+                                          ("DME", 2),
+                                          ("DRUSEN", 3)]
                                  )
         print("len train:", len(train_dataset))
         print("len val: ", len(val_dataset))
         strategy = None if devices == 1 else DDPStrategy(find_unused_parameters=False)
         simclr_model = train_simclr(devices=devices,
                                     strategy=strategy,
-                                    batch_size=len(train_dataset) // devices,
+                                    batch_size=min(len(train_dataset) // devices, 450),
                                     # batch_size=100,
                                     max_epochs=2000,
                                     train_data=train_dataset,

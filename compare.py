@@ -1,4 +1,5 @@
 import math
+import random
 
 import numpy as np
 from pytorch_lightning.strategies import DDPStrategy
@@ -50,33 +51,45 @@ if __name__ == "__main__":
     idx = np.array(range(1, cv_step + 1))
 
     for i in range(CV):
+        not_test_idx = list(set(np.array(range(1, PATIENTS + 1))) - set(idx))
+        val_idx = np.random.choice(not_test_idx, size=3, replace=False)
+        not_train_idx = np.concatenate((idx, val_idx))
+        not_val_idx = np.concatenate((idx, list(set(not_test_idx) - set(val_idx))))
+
         train_dataset = OCTDataset(data_root="./2014_BOE_Srinivasan_2/Publication_Dataset/original data",
                                    img_suffix='.tif',
                                    transform=img_transforms,
-                                   folders=idx,
+                                   folders=not_train_idx,
                                    extra_folder_names="TIFFs/8bitTIFFs"
                                    )
+
+        val_dataset = OCTDataset(data_root="./2014_BOE_Srinivasan_2/Publication_Dataset/original data",
+                                 img_suffix='.tif',
+                                 transform=img_transforms,
+                                 folders=not_val_idx,
+                                 extra_folder_names="TIFFs/8bitTIFFs"
+                                 )
 
         test_dataset = OCTDataset(data_root="./2014_BOE_Srinivasan_2/Publication_Dataset/original data",
                                   img_suffix='.tif',
                                   transform=img_transforms,
-                                  folders=list(set(np.array(range(1, PATIENTS + 1))) - set(idx)),
+                                  folders=not_test_idx,
                                   extra_folder_names="TIFFs/8bitTIFFs"
                                   )
 
-        training_set, val_set = random_split(train_dataset, [0.7, 0.3], generator=torch.Generator().manual_seed(42))
+        # training_set, val_set = random_split(train_dataset, [0.7, 0.3], generator=torch.Generator().manual_seed(42))
 
         simclr_model = SimCLR.load_from_checkpoint(os.path.join(CHECKPOINT_PATH, "SimCLR", "SimCLR_" + str(idx),
                                                                 "SimCLR_" + str(idx) + ".ckpt"))
         batch_size = 64
         print("training data preparation")
         train_feats_simclr = prepare_data_features(model=simclr_model,
-                                                   dataset=training_set,
+                                                   dataset=train_dataset,
                                                    device=device,
                                                    batch_size=batch_size)
         print("validation data preparation")
         val_feats_simclr = prepare_data_features(model=simclr_model,
-                                                 dataset=val_set,
+                                                 dataset=val_dataset,
                                                  device=device,
                                                  batch_size=batch_size)
         print("testing data preparation")
@@ -111,8 +124,8 @@ if __name__ == "__main__":
         resnet_model, resnet_result = train_resnet(devices=devices,
                                                    strategy=strategy,
                                                    batch_size=batch_size,
-                                                   train_data=training_set,
-                                                   val_data=val_set,
+                                                   train_data=train_dataset,
+                                                   val_data=val_dataset,
                                                    test_data=test_dataset,
                                                    lr=1e-3,
                                                    weight_decay=2e-4,
