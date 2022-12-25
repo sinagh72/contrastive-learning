@@ -81,7 +81,7 @@ if __name__ == "__main__":
         strategy = None if devices == 1 else DDPStrategy(find_unused_parameters=False)
         simclr_model = train_simclr(devices=devices,
                                     strategy=strategy,
-                                    batch_size=min(len(train_dataset) // devices, 50),
+                                    batch_size=min(len(train_dataset) // devices, 450),
                                     # batch_size=100,
                                     max_epochs=2000,
                                     train_data=train_dataset,
