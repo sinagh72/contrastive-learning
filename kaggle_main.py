@@ -4,7 +4,7 @@ import numpy as np
 import torchvision
 from pytorch_lightning.strategies import DDPStrategy
 
-from OCT_dataset import OCTDataset, ContrastiveTransformations, train_aug
+from OCT_dataset import OCTDataset, ContrastiveTransformations, train_aug, KaggleOCTDataset
 from train import train_simclr
 
 plt.set_cmap('cividis')
@@ -36,8 +36,6 @@ if __name__ == "__main__":
     devices = 8
     N_VIEWS = 2
     CV = 5
-    PATIENTS = 15
-    cv_step = PATIENTS // CV
     # Path to the folder where the datasets are/should be downloaded (e.g. CIFAR10)
     DATASET_PATH = "./kaggle_oct/OCT2017_/train"
     # Path to the folder where the pretrained models are saved
@@ -54,34 +52,36 @@ if __name__ == "__main__":
     print("Device:", device)
     print("Number of workers:", NUM_WORKERS)
 
-    idx = np.array(range(1, cv_step + 1))
-
     for i in range(CV):
-        train_dataset = OCTDataset(data_root=DATASET_PATH,
-                                   img_suffix='.jpeg',
-                                   transform=ContrastiveTransformations(train_aug, n_views=N_VIEWS),
-                                   folders=idx,
-                                   classes=[("NORMAL", 0),
-                                            ("CNV", 1),
-                                            ("DME", 2),
-                                            ("DRUSEN", 3)]
-                                   )
+        train_dataset = KaggleOCTDataset(data_root=DATASET_PATH,
+                                         img_suffix='.jpeg',
+                                         transform=ContrastiveTransformations(train_aug, n_views=N_VIEWS),
+                                         classes=[("NORMAL", 0),
+                                                  ("CNV", 1),
+                                                  ("DME", 2),
+                                                  ("DRUSEN", 3)],
+                                         mode="train",
+                                         cv=CV,
+                                         cv_counter=i
+                                         )
         # print(set(np.array(range(1, PATIENTS + 1))) -set(choices))
-        val_dataset = OCTDataset(data_root=DATASET_PATH,
-                                 img_suffix='.jpeg',
-                                 transform=ContrastiveTransformations(train_aug, n_views=N_VIEWS),
-                                 folders=list(set(np.array(range(1, PATIENTS + 1))) - set(idx)),
-                                 classes=[("NORMAL", 0),
-                                          ("CNV", 1),
-                                          ("DME", 2),
-                                          ("DRUSEN", 3)]
-                                 )
+        val_dataset = KaggleOCTDataset(data_root=DATASET_PATH,
+                                       img_suffix='.jpeg',
+                                       transform=ContrastiveTransformations(train_aug, n_views=N_VIEWS),
+                                       classes=[("NORMAL", 0),
+                                                ("CNV", 1),
+                                                ("DME", 2),
+                                                ("DRUSEN", 3)],
+                                       mode="val",
+                                       cv=CV,
+                                       cv_counter=i
+                                       )
         print("len train:", len(train_dataset))
         print("len val: ", len(val_dataset))
         strategy = None if devices == 1 else DDPStrategy(find_unused_parameters=False)
         simclr_model = train_simclr(devices=devices,
                                     strategy=strategy,
-                                    batch_size=min(len(train_dataset) // devices, 450),
+                                    batch_size=min(len(train_dataset) // devices, 50),
                                     # batch_size=100,
                                     max_epochs=2000,
                                     train_data=train_dataset,
@@ -92,6 +92,5 @@ if __name__ == "__main__":
                                     temperature=0.07,
                                     weight_decay=1e-4,
                                     n_views=N_VIEWS,
-                                    save_model_name="SimCLR_" + str(idx))
+                                    save_model_name="SimCLR_" + str(i))
 
-        idx += cv_step

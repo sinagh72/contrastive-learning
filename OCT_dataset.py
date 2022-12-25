@@ -2,8 +2,8 @@ from torch.utils.data import Dataset
 from torchvision.transforms import transforms, InterpolationMode
 import torch
 import os
-import numpy as np
 from PIL import Image
+from natsort import natsorted
 
 IMAGE_SIZE = (512, 496)
 
@@ -49,7 +49,6 @@ class OCTDataset(Dataset):
                        ("AMD", 1),
                        ("DME", 2)]
         self.data_root = data_root
-        self.extra_folder_names = extra_folder_names
         self.img_suffix = img_suffix
         self.transform = transform
         self.img_size = img_size
@@ -116,6 +115,98 @@ class OCTDataset(Dataset):
             #     for img in new_data:
             #         Image.open(img + ".tif").save(os.path.join(data_root, "NORMAL", "NORMAL_" + str(counts) + ".tif"))
             #         counts += 1
+        return img_ids
+
+    def load_img(self, index):
+        img_id = self.img_ids[index]
+        img = Image.open(img_id).convert(self.img_type)
+        return img
+
+
+def splitting(img_name: str, token: str):
+    return img_name.split(token)[1].replace("-", "", 1)
+
+
+class KaggleOCTDataset(Dataset):
+
+    def __init__(self, data_root, img_type="L", img_suffix='.png', transform=train_aug, img_size=IMAGE_SIZE,
+                 folders=None, mode="train", classes=None, cv=0, cv_counter=0):
+        if classes is None:
+            classes = [("NORMAL", 0),
+                       ("CNV", 1),
+                       ("DME", 2),
+                       ("DRUSEN", 3)]
+
+        self.data_root = data_root
+        self.img_suffix = img_suffix
+        self.transform = transform
+        self.img_size = img_size
+        self.img_type = img_type
+        self.folders = folders
+        self.mode = mode
+        self.classes = classes
+        self.cv = cv
+        self.cv_counter = cv_counter
+        self.img_ids = self.get_img_ids(self.data_root)
+
+    def __getitem__(self, index):
+        img = self.load_img(index)
+        img = self.transform(img)
+        # img = torch.from_numpy(img).permute(2, 0, 1).float()
+        img_id = self.img_ids[index]
+        """
+         Kaggle:
+           - "NORMAL" -> 0
+           - "CNV" -> 1
+           - "DME" -> 2
+           - "DRUSEN" -> 3
+        """
+        ann = 0
+        for c, v in self.classes:
+            if c in img_id:
+                ann = v
+                break
+
+        img_id = img_id.replace("\\", "/")
+
+        results = dict(img_id=img_id, img_folder=img_id.split(self.data_root)[1].split("/")[1], img=img, y_true=ann)
+
+        return results
+
+    def __len__(self):
+        """
+        The __len__ should be overridden when the parent is Dataset to return the number of elements of the dataset
+
+        Return:
+            - returns the size of the dataset
+        """
+        return len(self.img_ids)
+
+    def get_img_ids(self, data_root: str):
+        img_filename_list = os.listdir(os.path.join(data_root))
+        img_ids = []
+        for img_file in img_filename_list:
+            img_file_path = os.path.join(data_root, img_file)
+            # sort lexicographically the img names in the img_file directory
+            img_names = natsorted(os.listdir(img_file_path))
+            # split the first part of image
+            imgs_dict = {}
+            for img in img_names:
+                img_count = img.split("-")[2]
+                img_id = img.replace(img_count, "")
+                if img_id in imgs_dict:
+                    imgs_dict[img_id] += [img_count]
+                else:
+                    imgs_dict[img_id] = [img_count]
+            cv_len = len(imgs_dict.keys()) // self.cv
+            start_idx = self.cv_counter*cv_len
+            end_idx = start_idx + cv_len if self.cv_counter < self.cv - 1 else len(imgs_dict.keys())
+            keys = list(imgs_dict.keys())
+            for key, val in imgs_dict.items():
+                if key not in keys[start_idx:end_idx] and self.mode == "train":
+                    img_ids += [img_file_path+"/"+key+count for count in val]
+                elif key in keys[start_idx:end_idx] and self.mode == "val":
+                    img_ids += [img_file_path+"/"+key+count for count in val]
         return img_ids
 
     def load_img(self, index):
