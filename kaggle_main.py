@@ -79,6 +79,7 @@ if __name__ == "__main__":
         print("len train:", len(train_dataset))
         print("len val: ", len(val_dataset))
         strategy = None if devices == 1 else DDPStrategy(find_unused_parameters=False)
+        print(min(len(train_dataset) // devices, 450))
         simclr_model = train_simclr(devices=devices,
                                     strategy=strategy,
                                     batch_size=min(len(train_dataset) // devices, 450),
