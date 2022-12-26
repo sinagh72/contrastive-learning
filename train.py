@@ -15,10 +15,10 @@ NUM_WORKERS = os.cpu_count()
 
 
 def train_simclr(batch_size, max_epochs=500, train_data=None, val_data=None, checkpoint_path=None, save_model_name=None,
-                 devices=1, strategy=None, **kwargs):
+                 devices=1, strategy=None, monitor="", mode="min", **kwargs):
     pl.seed_everything(42)
     model_path = os.path.join(checkpoint_path, save_model_name)
-    early_stopping = EarlyStopping(monitor="train_loss", patience=50, verbose=False, mode="min")
+    early_stopping = EarlyStopping(monitor=monitor, patience=50, verbose=False, mode=mode)
     trainer = pl.Trainer(default_root_dir=model_path,
                          accelerator="gpu",
                          devices=devices,
@@ -27,7 +27,7 @@ def train_simclr(batch_size, max_epochs=500, train_data=None, val_data=None, che
                          callbacks=[
                              early_stopping,
                              ModelCheckpoint(dirpath=model_path, filename=save_model_name,
-                                             save_weights_only=True, mode='min', monitor='train_loss'),
+                                             save_weights_only=True, mode=mode, monitor=monitor),
                              LearningRateMonitor('epoch')],
                          log_every_n_steps=1)
     trainer.logger._default_hp_metric = None  # Optional logging argument that we don't need

@@ -93,5 +93,8 @@ if __name__ == "__main__":
                                     temperature=0.07,
                                     weight_decay=1e-4,
                                     n_views=N_VIEWS,
-                                    save_model_name="SimCLR_" + str(i))
+                                    save_model_name="SimCLR_" + str(i),
+                                    monitor="val_loss_epoch",
+                                    mode="min"
+                                    )
 
