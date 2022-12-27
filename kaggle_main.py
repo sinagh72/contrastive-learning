@@ -37,7 +37,7 @@ if __name__ == "__main__":
     N_VIEWS = 2
     CV = 5
     # Path to the folder where the datasets are
-    DATASET_PATH = "./kaggle_dataset/train"
+    DATASET_PATH = "data/kaggle_dataset/train"
     # Path to the folder where the pretrained models are saved
     CHECKPOINT_PATH = "./kaggle_saved_models/SimCLR/"
     # In this notebook, we use data loaders with heavier computational processing. It is recommended to use as many

@@ -39,7 +39,7 @@ if __name__ == "__main__":
     PATIENTS = 15
     cv_step = PATIENTS // CV
     # Path to the folder where the datasets are/should be downloaded (e.g. CIFAR10)
-    DATASET_PATH = "./2014_BOE_Srinivasan_2/Publication_Dataset/original data"
+    DATASET_PATH = "data/2014_BOE_Srinivasan_2/Publication_Dataset/original data"
     # Path to the folder where the pretrained models are saved
     CHECKPOINT_PATH = "./saved_models/SimCLR/"
     # In this notebook, we use data loaders with heavier computational processing. It is recommended to use as many

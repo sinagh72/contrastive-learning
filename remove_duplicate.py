@@ -39,8 +39,8 @@ def diff(first_dir, second_dir, first_dir_img_format=".png", second_dir_img_form
 
 
 if __name__ == "__main__":
-    diff(first_dir="./kaggle_dataset/test/CNV",
-         second_dir="./kaggle_dataset/train/CNV",
+    diff(first_dir="data/kaggle_dataset/test/CNV",
+         second_dir="data/kaggle_dataset/train/CNV",
          first_dir_img_format=".jpeg",
          second_dir_img_format=".jpeg",
          remove_diff=True)
