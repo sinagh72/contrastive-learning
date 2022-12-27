@@ -4,7 +4,7 @@ from torchvision.transforms import transforms, InterpolationMode
 import os
 import torch
 
-from OCT_dataset import OCTDataset
+from OCT_dataset import OCTDataset, KaggleOCTDataset, ContrastiveTransformations, train_aug
 from models.simclr import SimCLR
 from train import prepare_data_features, train_resnet, train_logreg
 
@@ -19,12 +19,10 @@ if __name__ == "__main__":
     devices = 8
     N_VIEWS = 2
     CV = 5
-    PATIENTS = 15
-    cv_step = PATIENTS // CV
-    # Path to the folder where the datasets are/should be downloaded (e.g. CIFAR10)
-    DATASET_PATH = "./2014_BOE_Srinivasan_2/Publication_Dataset"
+    # Path to the folder where the datasets are
+    DATASET_PATH = "./kaggle_dataset/train"
     # Path to the folder where the pretrained models are saved
-    CHECKPOINT_PATH = "./saved_models/"
+    CHECKPOINT_PATH = "./kaggle_saved_models/"
     # In this notebook, we use data loaders with heavier computational processing. It is recommended to use as many
     # workers as possible in a data loader, which corresponds to the number of CPU cores
     NUM_WORKERS = os.cpu_count()
@@ -43,39 +41,43 @@ if __name__ == "__main__":
                                          transforms.ToTensor(),
                                          transforms.Normalize((0.5,), (0.5,)),
                                          transforms.Lambda(_to_three_channel)])
-    idx = np.array(range(1, cv_step + 1))
 
     for i in range(CV):
-        not_test_idx = list(set(np.array(range(1, PATIENTS + 1))) - set(idx))
-        val_idx = np.random.choice(not_test_idx, size=3, replace=False)
-        not_train_idx = np.concatenate((idx, val_idx))
-        not_val_idx = np.concatenate((idx, list(set(not_test_idx) - set(val_idx))))
+        train_dataset = KaggleOCTDataset(data_root=DATASET_PATH,
+                                         img_suffix='.jpeg',
+                                         transform=ContrastiveTransformations(train_aug, n_views=N_VIEWS),
+                                         classes=[("NORMAL", 0),
+                                                  ("CNV", 1),
+                                                  ("DME", 2),
+                                                  ("DRUSEN", 3)],
+                                         mode="train",
+                                         cv=CV,
+                                         cv_counter=i
+                                         )
+        val_dataset = KaggleOCTDataset(data_root=DATASET_PATH,
+                                       img_suffix='.jpeg',
+                                       transform=ContrastiveTransformations(train_aug, n_views=N_VIEWS),
+                                       classes=[("NORMAL", 0),
+                                                ("CNV", 1),
+                                                ("DME", 2),
+                                                ("DRUSEN", 3)],
+                                       mode="val",
+                                       cv=CV,
+                                       cv_counter=i
+                                       )
 
-        train_dataset = OCTDataset(data_root="./2014_BOE_Srinivasan_2/Publication_Dataset/original data",
-                                   img_suffix='.tif',
-                                   transform=img_transforms,
-                                   folders=not_train_idx,
-                                   extra_folder_names="TIFFs/8bitTIFFs"
-                                   )
+        test_dataset = KaggleOCTDataset(data_root=DATASET_PATH,
+                                        img_suffix='.jpeg',
+                                        transform=ContrastiveTransformations(train_aug, n_views=N_VIEWS),
+                                        classes=[("NORMAL", 0),
+                                                 ("CNV", 1),
+                                                 ("DME", 2),
+                                                 ("DRUSEN", 3)],
+                                        mode="test",
+                                        )
 
-        val_dataset = OCTDataset(data_root="./2014_BOE_Srinivasan_2/Publication_Dataset/original data",
-                                 img_suffix='.tif',
-                                 transform=img_transforms,
-                                 folders=not_val_idx,
-                                 extra_folder_names="TIFFs/8bitTIFFs"
-                                 )
-
-        test_dataset = OCTDataset(data_root="./2014_BOE_Srinivasan_2/Publication_Dataset/original data",
-                                  img_suffix='.tif',
-                                  transform=img_transforms,
-                                  folders=not_test_idx,
-                                  extra_folder_names="TIFFs/8bitTIFFs"
-                                  )
-
-        # training_set, val_set = random_split(train_dataset, [0.7, 0.3], generator=torch.Generator().manual_seed(42))
-
-        simclr_model = SimCLR.load_from_checkpoint(os.path.join(CHECKPOINT_PATH, "SimCLR", "SimCLR_" + str(idx),
-                                                                "SimCLR_" + str(idx) + ".ckpt"))
+        simclr_model = SimCLR.load_from_checkpoint(os.path.join(CHECKPOINT_PATH, "SimCLR", "SimCLR_" + str(i),
+                                                                "SimCLR_" + str(i) + ".ckpt"))
         batch_size = 64
         print("training data preparation")
         train_feats_simclr = prepare_data_features(model=simclr_model,
@@ -106,9 +108,9 @@ if __name__ == "__main__":
                                                    lr=1e-3,
                                                    weight_decay=1e-3,
                                                    max_epochs=100,
-                                                   save_model_name="LogisticRegression" + str(idx))
-        with open('log/accuracy_logreg.txt', 'a') as f:
-            f.write("==================" + str(idx) + "==================")
+                                                   save_model_name="LogisticRegression" + str(i))
+        with open('log/kaggle_accuracy_logreg.txt', 'a') as f:
+            f.write("==================" + str(i) + "==================")
             f.write('\n')
             f.write(str(logreg_result['train']))
             f.write('\n' + str(logreg_result['val']))
@@ -127,10 +129,10 @@ if __name__ == "__main__":
                                                    checkpoint_path=CHECKPOINT_PATH + "/ResNet",
                                                    max_epochs=100,
                                                    num_classes=3,
-                                                   save_model_name="ResNet" + str(idx))
+                                                   save_model_name="ResNet" + str(i))
 
-        with open('log/accuracy_resnet.txt', 'a') as f:
-            f.write("==================" + str(idx) + "==================")
+        with open('log/kaggle_accuracy_resnet.txt', 'a') as f:
+            f.write("==================" + str(i) + "==================")
             f.write('\n')
             f.write(str(resnet_result['train']))
             f.write('\n' + str(resnet_result['val']))
@@ -141,4 +143,3 @@ if __name__ == "__main__":
         print(f"Accuracy on validation set: {resnet_result['val']}")
         print(f"Accuracy on test set: {resnet_result['test']}")
 
-        idx += cv_step

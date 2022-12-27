@@ -2,14 +2,13 @@ import os
 from copy import deepcopy
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor, EarlyStopping
-from pytorch_lightning.strategies.ddp import DDPStrategy
 import torch
 from torch import nn
-from torch.utils.data import DataLoader, TensorDataset, random_split
+from torch.utils.data import DataLoader, TensorDataset
 from tqdm import tqdm
-from baseline import ResNet
-from logistic_regression import LogisticRegression
-from simclr import SimCLR
+from models.baseline import ResNet
+from models.logistic_regression import LogisticRegression
+from models.simclr import SimCLR
 
 NUM_WORKERS = os.cpu_count()
 

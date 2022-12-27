@@ -198,15 +198,19 @@ class KaggleOCTDataset(Dataset):
                     imgs_dict[img_id] += [img_count]
                 else:
                     imgs_dict[img_id] = [img_count]
-            cv_len = len(imgs_dict.keys()) // self.cv
-            start_idx = self.cv_counter*cv_len
-            end_idx = start_idx + cv_len if self.cv_counter < self.cv - 1 else len(imgs_dict.keys())
-            keys = list(imgs_dict.keys())
-            for key, val in imgs_dict.items():
-                if key not in keys[start_idx:end_idx] and self.mode == "train":
+            if self.mode == "test":
+                for key, val in imgs_dict.items():
                     img_ids += [img_file_path+"/"+key+count for count in val]
-                elif key in keys[start_idx:end_idx] and self.mode == "val":
-                    img_ids += [img_file_path+"/"+key+count for count in val]
+            else:
+                cv_len = len(imgs_dict.keys()) // self.cv
+                start_idx = self.cv_counter*cv_len
+                end_idx = start_idx + cv_len if self.cv_counter < self.cv - 1 else len(imgs_dict.keys())
+                keys = list(imgs_dict.keys())
+                for key, val in imgs_dict.items():
+                    if key not in keys[start_idx:end_idx] and self.mode == "train":
+                        img_ids += [img_file_path+"/"+key+count for count in val]
+                    elif key in keys[start_idx:end_idx] and self.mode == "val":
+                        img_ids += [img_file_path+"/"+key+count for count in val]
         return img_ids
 
     def load_img(self, index):

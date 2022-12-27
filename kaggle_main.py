@@ -36,7 +36,7 @@ if __name__ == "__main__":
     devices = 8
     N_VIEWS = 2
     CV = 5
-    # Path to the folder where the datasets are/should be downloaded (e.g. CIFAR10)
+    # Path to the folder where the datasets are
     DATASET_PATH = "./kaggle_dataset/train"
     # Path to the folder where the pretrained models are saved
     CHECKPOINT_PATH = "./kaggle_saved_models/SimCLR/"
