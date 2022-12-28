@@ -107,7 +107,7 @@ def train_logreg(batch_size, train_feats_data, val_feats_data, test_feats_data, 
 
 
 @torch.no_grad()
-def prepare_data_features(model, dataset, device, batch_size=64):
+def prepare_data_features(model, dataset, device, num_workers, batch_size=64):
     # Prepare model
     network = deepcopy(model.convnet)
     network.fc = nn.Identity()  # Removing projection head g(.)
