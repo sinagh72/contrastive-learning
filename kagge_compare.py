@@ -103,7 +103,7 @@ if __name__ == "__main__":
                                                    val_feats_data=val_feats_simclr,
                                                    test_feats_data=test_feats_simclr,
                                                    feature_dim=train_feats_simclr.tensors[0].shape[1],
-                                                   num_classes=3,
+                                                   num_classes=4,
                                                    checkpoint_path=CHECKPOINT_PATH + "LogisticRegression",
                                                    lr=1e-3,
                                                    weight_decay=1e-3,
@@ -128,7 +128,7 @@ if __name__ == "__main__":
                                                    weight_decay=2e-4,
                                                    checkpoint_path=CHECKPOINT_PATH + "/ResNet",
                                                    max_epochs=100,
-                                                   num_classes=3,
+                                                   num_classes=4,
                                                    save_model_name="ResNet" + str(i))
 
         with open('log/kaggle_accuracy_resnet.txt', 'a') as f:
