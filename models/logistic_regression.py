@@ -16,9 +16,9 @@ class LogisticRegression(pl.LightningModule):
         self.save_hyperparameters()
         # Mapping from representation h to classes
         self.model = nn.Linear(feature_dim, num_classes)
-        self.train_cm = MulticlassConfusionMatrix(num_classes=3)
-        self.val_cm = MulticlassConfusionMatrix(num_classes=3)
-        self.test_cm = MulticlassConfusionMatrix(num_classes=3)
+        self.train_cm = MulticlassConfusionMatrix(num_classes=num_classes)
+        self.val_cm = MulticlassConfusionMatrix(num_classes=num_classes)
+        self.test_cm = MulticlassConfusionMatrix(num_classes=num_classes)
 
     def configure_optimizers(self):
         optimizer = optim.AdamW(self.parameters(),
