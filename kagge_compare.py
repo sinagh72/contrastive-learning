@@ -45,7 +45,7 @@ if __name__ == "__main__":
     for i in range(CV):
         train_dataset = KaggleOCTDataset(data_root=DATASET_PATH,
                                          img_suffix='.jpeg',
-                                         transform=ContrastiveTransformations(train_aug, n_views=N_VIEWS),
+                                         transform=img_transforms,
                                          classes=[("NORMAL", 0),
                                                   ("CNV", 1),
                                                   ("DME", 2),
@@ -56,7 +56,7 @@ if __name__ == "__main__":
                                          )
         val_dataset = KaggleOCTDataset(data_root=DATASET_PATH,
                                        img_suffix='.jpeg',
-                                       transform=ContrastiveTransformations(train_aug, n_views=N_VIEWS),
+                                       transform=img_transforms,
                                        classes=[("NORMAL", 0),
                                                 ("CNV", 1),
                                                 ("DME", 2),
@@ -68,7 +68,7 @@ if __name__ == "__main__":
 
         test_dataset = KaggleOCTDataset(data_root=DATASET_PATH,
                                         img_suffix='.jpeg',
-                                        transform=ContrastiveTransformations(train_aug, n_views=N_VIEWS),
+                                        transform=img_transforms,
                                         classes=[("NORMAL", 0),
                                                  ("CNV", 1),
                                                  ("DME", 2),
