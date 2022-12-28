@@ -14,9 +14,10 @@ def _to_three_channel(x):
 
 
 if __name__ == "__main__":
+    torch.multiprocessing.set_sharing_strategy('file_system')
     device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
     devices = torch.cuda.device_count()
-    devices = 1
+    devices = 8
     N_VIEWS = 2
     CV = 5
     # Path to the folder where the datasets are
@@ -84,19 +85,19 @@ if __name__ == "__main__":
                                                    dataset=train_dataset,
                                                    device=device,
                                                    batch_size=batch_size,
-                                                   num_workers=NUM_WORKERS//2)
+                                                   num_workers=1)
         print("validation data preparation")
         val_feats_simclr = prepare_data_features(model=simclr_model,
                                                  dataset=val_dataset,
                                                  device=device,
                                                  batch_size=batch_size,
-                                                 num_workers=NUM_WORKERS//2)
+                                                 num_workers=1)
         print("testing data preparation")
         test_feats_simclr = prepare_data_features(model=simclr_model,
                                                   dataset=test_dataset,
                                                   device=device,
                                                   batch_size=batch_size,
-                                                  num_workers=NUM_WORKERS//2)
+                                                  num_workers=1)
 
         strategy = None if devices == 1 else DDPStrategy(find_unused_parameters=False)
         logreg_model, logreg_result = train_logreg(devices=devices,
