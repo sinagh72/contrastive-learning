@@ -21,7 +21,7 @@ if __name__ == "__main__":
     N_VIEWS = 2
     CV = 5
     # Path to the folder where the datasets are
-    DATASET_PATH = "data/kaggle_dataset/train"
+    DATASET_PATH = "data/kaggle_dataset"
     # Path to the folder where the pretrained models are saved
     CHECKPOINT_PATH = "./kaggle_saved_models/"
     # In this notebook, we use data loaders with heavier computational processing. It is recommended to use as many
@@ -42,38 +42,32 @@ if __name__ == "__main__":
                                          transforms.ToTensor(),
                                          transforms.Normalize((0.5,), (0.5,)),
                                          transforms.Lambda(_to_three_channel)])
-
+    classes = [("NORMAL", 0),
+               ("CNV", 1),
+               ("DME", 2),
+               ("DRUSEN", 3)]
     for i in range(CV):
-        train_dataset = KaggleOCTDataset(data_root=DATASET_PATH,
+        train_dataset = KaggleOCTDataset(data_root=DATASET_PATH + "/train",
                                          img_suffix='.jpeg',
                                          transform=img_transforms,
-                                         classes=[("NORMAL", 0),
-                                                  ("CNV", 1),
-                                                  ("DME", 2),
-                                                  ("DRUSEN", 3)],
+                                         classes=classes,
                                          mode="train",
                                          cv=CV,
                                          cv_counter=i
                                          )
-        val_dataset = KaggleOCTDataset(data_root=DATASET_PATH,
+        val_dataset = KaggleOCTDataset(data_root=DATASET_PATH + "/train",
                                        img_suffix='.jpeg',
                                        transform=img_transforms,
-                                       classes=[("NORMAL", 0),
-                                                ("CNV", 1),
-                                                ("DME", 2),
-                                                ("DRUSEN", 3)],
+                                       classes=classes,
                                        mode="val",
                                        cv=CV,
                                        cv_counter=i
                                        )
 
-        test_dataset = KaggleOCTDataset(data_root=DATASET_PATH,
+        test_dataset = KaggleOCTDataset(data_root=DATASET_PATH + "/test",
                                         img_suffix='.jpeg',
                                         transform=img_transforms,
-                                        classes=[("NORMAL", 0),
-                                                 ("CNV", 1),
-                                                 ("DME", 2),
-                                                 ("DRUSEN", 3)],
+                                        classes=classes,
                                         mode="test",
                                         )
 
@@ -107,7 +101,7 @@ if __name__ == "__main__":
                                                    val_feats_data=val_feats_simclr,
                                                    test_feats_data=test_feats_simclr,
                                                    feature_dim=train_feats_simclr.tensors[0].shape[1],
-                                                   num_classes=4,
+                                                   classes=classes,
                                                    checkpoint_path=CHECKPOINT_PATH + "LogisticRegression",
                                                    lr=1e-3,
                                                    weight_decay=1e-3,
@@ -132,7 +126,7 @@ if __name__ == "__main__":
                                                    weight_decay=2e-4,
                                                    checkpoint_path=CHECKPOINT_PATH + "/ResNet",
                                                    max_epochs=100,
-                                                   num_classes=4,
+                                                   classes=classes,
                                                    save_model_name="ResNet" + str(i))
 
         with open('log/kaggle_accuracy_resnet.txt', 'a') as f:
@@ -146,4 +140,3 @@ if __name__ == "__main__":
         print(f"Accuracy on training set:{resnet_result['train']}")
         print(f"Accuracy on validation set: {resnet_result['val']}")
         print(f"Accuracy on test set: {resnet_result['test']}")
-

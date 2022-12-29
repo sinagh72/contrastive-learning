@@ -11,14 +11,22 @@ from torchmetrics.functional.classification import multiclass_confusion_matrix
 
 class LogisticRegression(pl.LightningModule):
 
-    def __init__(self, feature_dim, num_classes, lr, weight_decay, max_epochs=100):
+    def __init__(self, feature_dim, classes, lr, weight_decay, max_epochs=100):
+        """
+
+        :param feature_dim:
+        :param classes (tuple(str, int)): list of tuples, each tuple consists of class name and class index
+        :param lr (float): learning rate
+        :param weight_decay (float): weight decay of optimizer
+        :param max_epochs (int): maximum epochs
+        """
         super().__init__()
         self.save_hyperparameters()
         # Mapping from representation h to classes
-        self.model = nn.Linear(feature_dim, num_classes)
-        self.train_cm = MulticlassConfusionMatrix(num_classes=num_classes)
-        self.val_cm = MulticlassConfusionMatrix(num_classes=num_classes)
-        self.test_cm = MulticlassConfusionMatrix(num_classes=num_classes)
+        self.model = nn.Linear(feature_dim, len(self.hparams.classes))
+        self.train_cm = MulticlassConfusionMatrix(num_classes=len(self.hparams.classes))
+        self.val_cm = MulticlassConfusionMatrix(num_classes=len(self.hparams.classes))
+        self.test_cm = MulticlassConfusionMatrix(num_classes=len(self.hparams.classes))
 
     def configure_optimizers(self):
         optimizer = optim.AdamW(self.parameters(),
@@ -48,9 +56,11 @@ class LogisticRegression(pl.LightningModule):
     def training_epoch_end(self, outputs):
         cm = self.train_cm.compute()
         class_accuracy = 100 * cm.diagonal() / cm.sum(1)
-        log = {"train_acc_normal": class_accuracy[0], "train_acc_AMD": class_accuracy[1],
-               "train_acc_DME": class_accuracy[2],
-               "train_loss": outputs[-1]}
+        log = {}
+        for c in self.hparams.classes:
+            log["train_acc_" + c[0]] = class_accuracy[c[1]]
+        log["train_loss"] = outputs[-1]
+
         self.log_dict(log, sync_dist=True, on_epoch=True, prog_bar=True)
         self.train_cm.reset()
 
@@ -66,8 +76,10 @@ class LogisticRegression(pl.LightningModule):
     def validation_epoch_end(self, outputs):
         cm = self.val_cm.compute()
         class_accuracy = 100 * cm.diagonal() / cm.sum(1)
-        log = {"val_acc_normal": class_accuracy[0], "val_acc_AMD": class_accuracy[1], "val_acc_DME": class_accuracy[2],
-               "val_loss": outputs[-1]}
+        log = {}
+        for c in self.hparams.classes:
+            log["val_acc_" + c[0]] = class_accuracy[c[1]]
+        log["val_loss"] = outputs[-1]
         self.log_dict(log, sync_dist=True, on_epoch=True, prog_bar=True)
         self.val_cm.reset()
 
@@ -83,8 +95,9 @@ class LogisticRegression(pl.LightningModule):
     def test_epoch_end(self, outputs):
         cm = self.test_cm.compute()
         class_accuracy = 100 * cm.diagonal() / cm.sum(1)
-        log = {"test_acc_normal": class_accuracy[0], "test_acc_AMD": class_accuracy[1], "test_acc_DME": class_accuracy[2],
-               "test_loss": outputs[-1]}
+        log = {}
+        for c in self.hparams.classes:
+            log["test_acc_" + c[0]] = class_accuracy[c[1]]
+        log["test_loss"] = outputs[-1]
         self.log_dict(log, sync_dist=True, on_epoch=True, prog_bar=True)
         self.test_cm.reset()
-

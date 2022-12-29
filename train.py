@@ -92,17 +92,12 @@ def train_logreg(batch_size, train_feats_data, val_feats_data, test_feats_data, 
     train_result = trainer.test(model, train_loader, verbose=False)
     val_result = trainer.test(model, val_loader, verbose=False)
     test_result = trainer.test(model, test_loader, verbose=False)
+    result = {"train": {}, "val": {}, "test": {}}
+    for c in kwargs["classes"]:
+        result["train"]["acc_" + c[0]] = train_result[0]["test_acc_" + c[0]]
+        result["val"]["acc_" + c[0]] = val_result[0]["test_acc_" + c[0]]
+        result["test"]["acc_" + c[0]] = test_result[0]["test_acc_" + c[0]]
 
-    result = {"train": {"acc_normal": train_result[0]["test_acc_normal"],
-                        "acc_ADM": train_result[0]["test_acc_AMD"],
-                        "acc_DME": train_result[0]["test_acc_DME"]},
-              "val": {"acc_normal": val_result[0]["test_acc_normal"],
-                      "acc_ADM": val_result[0]["test_acc_AMD"],
-                      "acc_DME": val_result[0]["test_acc_DME"]},
-              "test": {"acc_normal": test_result[0]["test_acc_normal"],
-                       "acc_ADM": test_result[0]["test_acc_AMD"],
-                       "acc_DME": test_result[0]["test_acc_DME"]}
-              }
     return model, result
 
 
@@ -172,16 +167,10 @@ def train_resnet(batch_size, train_data, val_data, test_data, checkpoint_path, m
     train_result = trainer.test(model, train_loader, verbose=False)
     val_result = trainer.test(model, valid_loader, verbose=False)
     test_result = trainer.test(model, test_loader, verbose=False)
-
-    result = {"train": {"acc_normal": train_result[0]["test_acc_normal"],
-                        "acc_ADM": train_result[0]["test_acc_AMD"],
-                        "acc_DME": train_result[0]["test_acc_DME"]},
-              "val": {"acc_normal": val_result[0]["test_acc_normal"],
-                      "acc_ADM": val_result[0]["test_acc_AMD"],
-                      "acc_DME": val_result[0]["test_acc_DME"]},
-              "test": {"acc_normal": test_result[0]["test_acc_normal"],
-                       "acc_ADM": test_result[0]["test_acc_AMD"],
-                       "acc_DME": test_result[0]["test_acc_DME"]}
-              }
+    result = {"train": {}, "val": {}, "test": {}}
+    for c in kwargs["classes"]:
+        result["train"]["acc_" + c[0]] = train_result[0]["test_acc_" + c[0]]
+        result["val"]["acc_" + c[0]] = val_result[0]["test_acc_" + c[0]]
+        result["test"]["acc_" + c[0]] = test_result[0]["test_acc_" + c[0]]
 
     return model, result
