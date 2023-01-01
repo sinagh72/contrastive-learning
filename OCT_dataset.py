@@ -130,7 +130,7 @@ def splitting(img_name: str, token: str):
 class KaggleOCTDataset(Dataset):
 
     def __init__(self, data_root, img_type="L", img_suffix='.png', transform=train_aug, img_size=IMAGE_SIZE,
-                 folders=None, mode="train", classes=None, cv=0, cv_counter=0):
+                 folders=None, mode="train", classes=None, cv=1, cv_counter=0):
         if classes is None:
             classes = [("NORMAL", 0),
                        ("CNV", 1),
