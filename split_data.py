@@ -5,7 +5,7 @@ import random
 from PIL import Image
 from natsort import natsorted
 
-new_root = "C:/Phd/projects/contrastive learning/data/kaggle_dataset/test"
+new_root = "./data/kaggle_dataset/test"
 
 def move_data(img_path):
 
@@ -18,7 +18,7 @@ def move_data(img_path):
 
 
 if __name__ == "__main__":
-    root = "C:/Phd/projects/contrastive learning/data/kaggle_dataset/train"
+    root = "./data/kaggle_dataset/train"
     image_format = ".jpeg"
     nproc = 4
     percentage = [0.9, 0.03]
