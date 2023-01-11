@@ -1,5 +1,5 @@
 /saved_models/SimCLR/lightning_logs/
 /saved_models/ResNet2/lightning_logs/
 /saved_models/LogisticRegression2/lightning_logs/
-/data/
+/data/kaggle_dataset/
 

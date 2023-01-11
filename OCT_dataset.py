@@ -200,17 +200,100 @@ class KaggleOCTDataset(Dataset):
                     imgs_dict[img_id] = [img_count]
             if self.mode == "test":
                 for key, val in imgs_dict.items():
-                    img_ids += [img_file_path+"/"+key+count for count in val]
+                    img_ids += [img_file_path + "/" + key + count for count in val]
             else:
                 cv_len = len(imgs_dict.keys()) // self.cv
-                start_idx = self.cv_counter*cv_len
+                start_idx = self.cv_counter * cv_len
                 end_idx = start_idx + cv_len if self.cv_counter < self.cv - 1 else len(imgs_dict.keys())
                 keys = list(imgs_dict.keys())
                 for key, val in imgs_dict.items():
                     if key not in keys[start_idx:end_idx] and self.mode == "train":
-                        img_ids += [img_file_path+"/"+key+count for count in val]
+                        img_ids += [img_file_path + "/" + key + count for count in val]
                     elif key in keys[start_idx:end_idx] and self.mode == "val":
-                        img_ids += [img_file_path+"/"+key+count for count in val]
+                        img_ids += [img_file_path + "/" + key + count for count in val]
+        return img_ids
+
+    def load_img(self, index):
+        img_id = self.img_ids[index]
+        img = Image.open(img_id).convert(self.img_type)
+        return img
+
+
+class DRDataset(Dataset):
+    def __init__(self, data_root, img_type="L", transform=train_aug, img_size=IMAGE_SIZE,
+                 folders=None, mode="train", classes=None, cv=1, cv_counter=0):
+        if classes is None:
+            classes = [("nonreferral", 0),
+                       ("referral", 1)]
+
+        self.data_root = data_root
+        self.transform = transform
+        self.img_size = img_size
+        self.img_type = img_type
+        self.folders = folders
+        self.mode = mode
+        self.classes = classes
+        self.cv = cv
+        self.cv_counter = cv_counter
+        self.img_ids = self.get_img_ids(self.data_root)
+
+    def __getitem__(self, index):
+        img = self.load_img(index)
+        img = self.transform(img)
+        # img = torch.from_numpy(img).permute(2, 0, 1).float()
+        img_id = self.img_ids[index]
+        """
+         DR:
+           - "nonreferral" -> control, mild
+           - "referral" -> moderate, severe
+        """
+        ann = 0
+        for c, v in self.classes:
+            if c in img_id:
+                ann = v
+                break
+
+        img_id = img_id.replace("\\", "/")
+
+        results = dict(img_id=img_id, img_folder=img_id.split(self.data_root)[1].split("/")[1], img=img, y_true=ann)
+
+        return results
+
+    def __len__(self):
+        """
+        The __len__ should be overridden when the parent is Dataset to return the number of elements of the dataset
+
+        Return:
+            - returns the size of the dataset
+        """
+        return len(self.img_ids)
+
+    def get_img_ids(self, data_root: str):
+        img_folders = os.listdir(os.path.join(data_root))
+        imgs_dict = {}
+        img_ids = []
+        for img_folder in img_folders:
+            imgs = natsorted(os.listdir(os.path.join(data_root, img_folder)))
+            for img in imgs:
+                img_path = os.path.join(data_root, img_folder, img)
+                patient_name = img.split("_")[1] + img.split("_")[2]
+                if patient_name in imgs_dict:
+                    imgs_dict[patient_name] += [img_path]
+                else:
+                    imgs_dict[patient_name] = [img_path]
+            if self.mode == "test":
+                for key, val in imgs_dict.items():
+                    img_ids += [img_p for img_p in val]
+            else:
+                cv_len = len(imgs_dict.keys()) // self.cv
+                start_idx = self.cv_counter * cv_len
+                end_idx = start_idx + cv_len if self.cv_counter < self.cv - 1 else len(imgs_dict.keys())
+                keys = list(imgs_dict.keys())
+                for key, val in imgs_dict.items():
+                    if key not in keys[start_idx:end_idx] and self.mode == "train":
+                        img_ids += [img_p for img_p in val]
+                    elif key in keys[start_idx:end_idx] and self.mode == "val":
+                        img_ids += [img_p for img_p in val]
         return img_ids
 
     def load_img(self, index):
