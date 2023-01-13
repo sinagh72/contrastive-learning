@@ -3,25 +3,32 @@ import torch
 import torchvision
 from torch import optim
 import torch.nn.functional as F
-from torchmetrics.classification import MulticlassConfusionMatrix
+from torchmetrics.classification import MulticlassAccuracy, BinaryAccuracy, MulticlassPrecision
 
 
 class ResNet(pl.LightningModule):
 
-    def __init__(self, classes, lr, weight_decay, max_epochs=100):
+    def __init__(self, classes, lr, weight_decay, metric="accuracy", max_epochs=100):
         """
 
         :param classes (tuple(str, int)): list of tuples, each tuple consists of class name and class index
         :param lr (float): learning rate
         :param weight_decay (float): weight decay of optimizer
         :param max_epochs (int): maximum epochs
+        :param accuracy (str): specifies the type of metric
         """
         super().__init__()
         self.save_hyperparameters()
         self.model = torchvision.models.resnet18(num_classes=len(self.hparams.classes))
-        self.train_cm = MulticlassConfusionMatrix(num_classes=len(self.hparams.classes))
-        self.val_cm = MulticlassConfusionMatrix(num_classes=len(self.hparams.classes))
-        self.test_cm = MulticlassConfusionMatrix(num_classes=len(self.hparams.classes))
+        if self.hparams.metric == "accuracy":
+            self.train_cm = MulticlassAccuracy(num_classes=len(self.hparams.classes), average=None)
+            self.val_cm = MulticlassAccuracy(num_classes=len(self.hparams.classes), average=None)
+            self.test_cm = MulticlassAccuracy(num_classes=len(self.hparams.classes), average=None)
+
+        elif self.hparams.metric == "precision":
+            self.train_cm = MulticlassPrecision(num_classes=len(self.hparams.classes), average=None)
+            self.val_cm = MulticlassPrecision(num_classes=len(self.hparams.classes), average=None)
+            self.test_cm = MulticlassPrecision(num_classes=len(self.hparams.classes), average=None)
 
     def configure_optimizers(self):
         optimizer = optim.AdamW(self.parameters(),
@@ -50,10 +57,9 @@ class ResNet(pl.LightningModule):
 
     def training_epoch_end(self, outputs):
         cm = self.train_cm.compute()
-        class_accuracy = 100 * cm.diagonal() / cm.sum(1)
         log = {}
         for c in self.hparams.classes:
-            log["train_acc_" + c[0]] = class_accuracy[c[1]]
+            log[f"train_{self.hparams.metric}_" + c[0]] = cm[c[1]]
         log["train_loss"] = outputs[-1]
         self.log_dict(log, sync_dist=True, on_epoch=True, prog_bar=True)
         self.train_cm.reset()
@@ -69,10 +75,9 @@ class ResNet(pl.LightningModule):
 
     def validation_epoch_end(self, outputs):
         cm = self.val_cm.compute()
-        class_accuracy = 100 * cm.diagonal() / cm.sum(1)
         log = {}
         for c in self.hparams.classes:
-            log["val_acc_" + c[0]] = class_accuracy[c[1]]
+            log[f"val_{self.hparams.metric}_" + c[0]] = cm[c[1]]
         log["val_loss"] = outputs[-1]
         self.log_dict(log, sync_dist=True, on_epoch=True, prog_bar=True)
         self.val_cm.reset()
@@ -88,61 +93,9 @@ class ResNet(pl.LightningModule):
 
     def test_epoch_end(self, outputs):
         cm = self.test_cm.compute()
-        class_accuracy = 100 * cm.diagonal() / cm.sum(1)
         log = {}
         for c in self.hparams.classes:
-            log["test_acc_" + c[0]] = class_accuracy[c[1]]
+            log[f"test_{self.hparams.metric}_" + c[0]] = cm[c[1]]
         log["test_loss"] = outputs[-1]
         self.log_dict(log, sync_dist=True, on_epoch=True, prog_bar=True)
         self.test_cm.reset()
-
-    # def _calculate_loss(self, batch, mode='train'):
-    #     imgs, labels = batch["img"], batch["y_true"]
-    #     preds = self.model(imgs)
-    #     loss = F.cross_entropy(preds, labels)
-    #     acc = (preds.argmax(dim=-1) == labels).float().mean()
-    #
-    #     log_dict = {mode + "_loss": loss,
-    #                 mode + "_acc": acc}
-    #     # self.log(mode + '_loss', loss, on_epoch=True, prog_bar=True, sync_dist=True)
-    #     # self.log(mode + '_acc', acc, on_epoch=True, prog_bar=True, sync_dist=True)
-    #     # return  loss
-    #     return log_dict
-    #
-    # def training_step(self, batch, batch_idx):
-    #     return self._calculate_loss(batch, mode='train')
-    #
-    # def training_step_end(self, batch_parts):
-    #     # losses from each GPU
-    #     log_dict = {}
-    #     # do something with both outputs
-    #     for k, v in batch_parts.items():
-    #         log_dict[k] = batch_parts[k].mean()
-    #
-    #     self.log_dict(log_dict, prog_bar=True, on_step=True, sync_dist=True)
-    #     return batch_parts["train_loss"].mean()
-    #
-    # def validation_step(self, batch, batch_idx):
-    #     return self._calculate_loss(batch, mode='val')
-    #
-    # def validation_step_end(self, batch_parts):
-    #     log_dict = {}
-    #     # do something with both outputs
-    #     for k, v in batch_parts.items():
-    #         log_dict[k] = batch_parts[k].mean()
-    #
-    #     self.log_dict(log_dict, prog_bar=True, on_step=True, sync_dist=True)
-    #     return batch_parts["val_loss"].mean()
-    #
-    # def test_step(self, batch, batch_idx):
-    #     return self._calculate_loss(batch, mode='test')
-    #
-    # def test_step_end(self, batch_parts):
-    #     # losses from each GPU
-    #     log_dict = {}
-    #     # do something with both outputs
-    #     for k, v in batch_parts.items():
-    #         log_dict[k] = batch_parts[k].mean()
-    #
-    #     self.log_dict(log_dict, prog_bar=True, on_step=True, sync_dist=True)
-    #     return batch_parts["test_loss"].mean()

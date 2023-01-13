@@ -1,0 +1,20 @@
+==================0==================
+{'precision_nonreferral': 0.96875, 'precision_referral': 1.0}
+{'precision_nonreferral': 0.8571428656578064, 'precision_referral': 0.20000000298023224}
+{'precision_nonreferral': 0.8999999761581421, 'precision_referral': 1.0}
+==================1==================
+{'precision_nonreferral': 0.9696969985961914, 'precision_referral': 1.0}
+{'precision_nonreferral': 1.0, 'precision_referral': 0.0}
+{'precision_nonreferral': 0.800000011920929, 'precision_referral': 0.3333333432674408}
+==================2==================
+{'precision_nonreferral': 0.9692307710647583, 'precision_referral': 1.0}
+{'precision_nonreferral': 1.0, 'precision_referral': 0.0}
+{'precision_nonreferral': 0.800000011920929, 'precision_referral': 0.5}
+==================3==================
+{'precision_nonreferral': 1.0, 'precision_referral': 0.800000011920929}
+{'precision_nonreferral': 0.5882353186607361, 'precision_referral': 1.0}
+{'precision_nonreferral': 0.761904776096344, 'precision_referral': 0.3333333432674408}
+==================4==================
+{'precision_nonreferral': 1.0, 'precision_referral': 0.7777777910232544}
+{'precision_nonreferral': 0.6315789222717285, 'precision_referral': 1.0}
+{'precision_nonreferral': 0.761904776096344, 'precision_referral': 0.3333333432674408}

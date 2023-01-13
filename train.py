@@ -7,7 +7,7 @@ from torch import nn
 from torch.utils.data import DataLoader, TensorDataset
 from tqdm import tqdm
 from models.baseline import ResNet
-from models.logistic_regression import LogisticRegression
+from models.linear_model import LinearModel
 from models.simclr import SimCLR
 
 NUM_WORKERS = os.cpu_count()
@@ -53,15 +53,19 @@ def train_simclr(batch_size, max_epochs=500, train_data=None, val_data=None, che
     return model
 
 
-def train_logreg(batch_size, train_feats_data, val_feats_data, test_feats_data, checkpoint_path, max_epochs=100,
-                 save_model_name=None, devices=1, strategy=None, **kwargs):
+def train_linear_model(batch_size, train_feats_data, val_feats_data, test_feats_data, checkpoint_path,
+                       save_model_name=None, devices=1, strategy=None, **kwargs):
+    metric = "accuracy"
+    if "metric" in kwargs:
+        metric = kwargs["metric"]
+
     model_path = os.path.join(checkpoint_path, save_model_name)
     early_stopping = EarlyStopping(monitor="val_loss", patience=10, verbose=False, mode="min")
     trainer = pl.Trainer(default_root_dir=model_path,
                          accelerator="gpu",
                          devices=devices,
                          strategy=strategy,
-                         max_epochs=max_epochs,
+                         max_epochs=kwargs["max_epochs"],
                          callbacks=[early_stopping,
                                     ModelCheckpoint(dirpath=model_path, filename=save_model_name,
                                                     save_weights_only=True, mode='min', monitor='val_loss'),
@@ -81,12 +85,12 @@ def train_logreg(batch_size, train_feats_data, val_feats_data, test_feats_data, 
     # Check whether pretrained model exists. If yes, load it and skip training
     if os.path.isfile(model_path):
         print(f"Found pretrained model at {model_path}, loading...")
-        model = LogisticRegression.load_from_checkpoint(model_path)
+        model = LinearModel.load_from_checkpoint(model_path)
     else:
         pl.seed_everything(42)  # To be reproducable
-        model = LogisticRegression(**kwargs)
+        model = LinearModel(**kwargs)
         trainer.fit(model, train_loader, val_loader)
-        model = LogisticRegression.load_from_checkpoint(trainer.checkpoint_callback.best_model_path)
+        model = LinearModel.load_from_checkpoint(trainer.checkpoint_callback.best_model_path)
 
     # Test best model on train and validation set
     train_result = trainer.test(model, train_loader, verbose=False)
@@ -94,9 +98,9 @@ def train_logreg(batch_size, train_feats_data, val_feats_data, test_feats_data, 
     test_result = trainer.test(model, test_loader, verbose=False)
     result = {"train": {}, "val": {}, "test": {}}
     for c in kwargs["classes"]:
-        result["train"]["acc_" + c[0]] = train_result[0]["test_acc_" + c[0]]
-        result["val"]["acc_" + c[0]] = val_result[0]["test_acc_" + c[0]]
-        result["test"]["acc_" + c[0]] = test_result[0]["test_acc_" + c[0]]
+        result["train"][f"{metric}_" + c[0]] = train_result[0][f"test_{metric}_" + c[0]]
+        result["val"][f"{metric}_" + c[0]] = val_result[0][f"test_{metric}_" + c[0]]
+        result["test"][f"{metric}_" + c[0]] = test_result[0][f"test_{metric}_" + c[0]]
 
     return model, result
 
@@ -128,15 +132,19 @@ def prepare_data_features(model, dataset, device, num_workers, batch_size=64):
     return TensorDataset(feats, labels)
 
 
-def train_resnet(batch_size, train_data, val_data, test_data, checkpoint_path, max_epochs=100,
+def train_resnet(batch_size, train_data, val_data, test_data, checkpoint_path,
                  save_model_name=None, devices=1, strategy=None, **kwargs):
+    metric = "accuracy"
+    if "metric" in kwargs:
+        metric = kwargs["metric"]
+
     model_path = os.path.join(checkpoint_path, save_model_name)
     early_stopping = EarlyStopping(monitor="val_loss", patience=10, verbose=False, mode="min")
     trainer = pl.Trainer(default_root_dir=model_path,
                          accelerator="gpu",
                          devices=devices,
                          strategy=strategy,
-                         max_epochs=max_epochs,
+                         max_epochs=kwargs["max_epochs"],
                          callbacks=[early_stopping,
                                     ModelCheckpoint(
                                         dirpath=model_path, filename=save_model_name, save_weights_only=True, mode="min"
@@ -168,9 +176,10 @@ def train_resnet(batch_size, train_data, val_data, test_data, checkpoint_path, m
     val_result = trainer.test(model, valid_loader, verbose=False)
     test_result = trainer.test(model, test_loader, verbose=False)
     result = {"train": {}, "val": {}, "test": {}}
+    print(train_result)
     for c in kwargs["classes"]:
-        result["train"]["acc_" + c[0]] = train_result[0]["test_acc_" + c[0]]
-        result["val"]["acc_" + c[0]] = val_result[0]["test_acc_" + c[0]]
-        result["test"]["acc_" + c[0]] = test_result[0]["test_acc_" + c[0]]
+        result["train"][f"{metric}_" + c[0]] = train_result[0][f"test_{metric}_" + c[0]]
+        result["val"][f"{metric}_" + c[0]] = val_result[0][f"test_{metric}_" + c[0]]
+        result["test"][f"{metric}_" + c[0]] = test_result[0][f"test_{metric}_" + c[0]]
 
     return model, result
