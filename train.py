@@ -68,7 +68,8 @@ def train_linear_model(batch_size, train_feats_data, val_feats_data, test_feats_
                          max_epochs=kwargs["max_epochs"],
                          callbacks=[early_stopping,
                                     ModelCheckpoint(dirpath=model_path, filename=save_model_name,
-                                                    save_weights_only=True, mode='min', monitor='val_loss'),
+                                                    save_weights_only=True, mode='min', monitor='val_loss',
+                                                    save_top_k=1),
                                     LearningRateMonitor("epoch")],
                          log_every_n_steps=1)
     trainer.logger._default_hp_metric = None
@@ -148,7 +149,7 @@ def train_resnet(batch_size, train_data, val_data, test_data, checkpoint_path,
                          callbacks=[early_stopping,
                                     ModelCheckpoint(
                                         dirpath=model_path, filename=save_model_name, save_weights_only=True, mode="min"
-                                        , monitor="val_loss"),
+                                        , monitor="val_loss", save_top_k=1),
                                     LearningRateMonitor("epoch")],
                          log_every_n_steps=1)
     trainer.logger._default_hp_metric = None

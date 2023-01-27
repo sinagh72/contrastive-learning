@@ -129,7 +129,7 @@ def splitting(img_name: str, token: str):
 
 class KaggleOCTDataset(Dataset):
 
-    def __init__(self, data_root, img_type="L", img_suffix='.png', transform=train_aug, img_size=IMAGE_SIZE,
+    def __init__(self, data_root, img_type="L", transform=train_aug, img_size=IMAGE_SIZE,
                  folders=None, mode="train", classes=None, cv=1, cv_counter=0):
         if classes is None:
             classes = [("NORMAL", 0),
@@ -138,7 +138,6 @@ class KaggleOCTDataset(Dataset):
                        ("DRUSEN", 3)]
 
         self.data_root = data_root
-        self.img_suffix = img_suffix
         self.transform = transform
         self.img_size = img_size
         self.img_type = img_type
@@ -154,13 +153,7 @@ class KaggleOCTDataset(Dataset):
         img = self.transform(img)
         # img = torch.from_numpy(img).permute(2, 0, 1).float()
         img_id = self.img_ids[index]
-        """
-         Kaggle:
-           - "NORMAL" -> 0
-           - "CNV" -> 1
-           - "DME" -> 2
-           - "DRUSEN" -> 3
-        """
+
         ann = 0
         for c, v in self.classes:
             if c in img_id:

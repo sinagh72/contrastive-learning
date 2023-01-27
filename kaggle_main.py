@@ -33,13 +33,13 @@ def show_img(train, num_imgs=6, n_views=2):
 if __name__ == "__main__":
     device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
     devices = torch.cuda.device_count()
-    devices = 8
+    devices = 1
     N_VIEWS = 2
     CV = 5
     # Path to the folder where the datasets are
-    DATASET_PATH = "data/kaggle_dataset/train"
+    DATASET_PATH = "data/kaggle_dataset_full/"
     # Path to the folder where the pretrained models are saved
-    CHECKPOINT_PATH = "./kaggle_saved_models/SimCLR/"
+    CHECKPOINT_PATH = "./kaggle_full_saved_models/SimCLR/"
     # In this notebook, we use data loaders with heavier computational processing. It is recommended to use as many
     # workers as possible in a data loader, which corresponds to the number of CPU cores
     NUM_WORKERS = os.cpu_count()
@@ -51,27 +51,21 @@ if __name__ == "__main__":
     device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
     print("Device:", device)
     print("Number of workers:", NUM_WORKERS)
-
+    classes = [("NORMAL", 0),
+               ("AMD", 1),
+               ("DME", 2)]
     for i in range(CV):
         train_dataset = KaggleOCTDataset(data_root=DATASET_PATH,
-                                         img_suffix='.jpeg',
                                          transform=ContrastiveTransformations(train_aug, n_views=N_VIEWS),
-                                         classes=[("NORMAL", 0),
-                                                  ("CNV", 1),
-                                                  ("DME", 2),
-                                                  ("DRUSEN", 3)],
+                                         classes=classes,
                                          mode="train",
                                          cv=CV,
                                          cv_counter=i
                                          )
         # print(set(np.array(range(1, PATIENTS + 1))) -set(choices))
         val_dataset = KaggleOCTDataset(data_root=DATASET_PATH,
-                                       img_suffix='.jpeg',
                                        transform=ContrastiveTransformations(train_aug, n_views=N_VIEWS),
-                                       classes=[("NORMAL", 0),
-                                                ("CNV", 1),
-                                                ("DME", 2),
-                                                ("DRUSEN", 3)],
+                                       classes=classes,
                                        mode="val",
                                        cv=CV,
                                        cv_counter=i
@@ -79,11 +73,10 @@ if __name__ == "__main__":
         print("len train:", len(train_dataset))
         print("len val: ", len(val_dataset))
         strategy = None if devices == 1 else DDPStrategy(find_unused_parameters=False)
-        print(min(len(train_dataset) // devices, 450))
         simclr_model = train_simclr(devices=devices,
                                     strategy=strategy,
-                                    batch_size=min(len(train_dataset) // devices, 450),
-                                    # batch_size=100,
+                                    # batch_size=min(len(train_dataset) // devices, 450),
+                                    batch_size=100,
                                     max_epochs=2000,
                                     train_data=train_dataset,
                                     val_data=val_dataset,
