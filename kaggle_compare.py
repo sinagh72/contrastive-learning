@@ -6,7 +6,7 @@ import torch
 
 from OCT_dataset import OCTDataset, KaggleOCTDataset, ContrastiveTransformations, train_aug
 from models.simclr import SimCLR
-from train import prepare_data_features, train_resnet, train_logreg
+from train import prepare_data_features, train_resnet, train_linear_model
 
 
 def _to_three_channel(x):
@@ -21,9 +21,11 @@ if __name__ == "__main__":
     N_VIEWS = 2
     CV = 5
     # Path to the folder where the datasets are
-    DATASET_PATH = "data/kaggle_dataset"
-    # Path to the folder where the pretrained models are saved
-    CHECKPOINT_PATH = "./kaggle_saved_models/"
+    DATASET_PATH = "data/kaggle_dataset_full"
+    # Path to load simclr and to save resnet and linear models
+    CHECKPOINT_PATH = "./kaggle_full_saved_models/"
+
+    TEST_DATASET_PATH = "data/2014_BOE_Srinivasan_2/Publication_Dataset/original data"
     # In this notebook, we use data loaders with heavier computational processing. It is recommended to use as many
     # workers as possible in a data loader, which corresponds to the number of CPU cores
     NUM_WORKERS = os.cpu_count()
@@ -43,20 +45,21 @@ if __name__ == "__main__":
                                          transforms.Normalize((0.5,), (0.5,)),
                                          transforms.Lambda(_to_three_channel)])
     classes = [("NORMAL", 0),
-               ("CNV", 1),
-               ("DME", 2),
-               ("DRUSEN", 3)]
+               ("AMD", 1),
+               ("DME", 2)]
+
+    metric = "accuracy"
+    log_name_suffix = "kaggle_full_"
+
     for i in range(CV):
-        train_dataset = KaggleOCTDataset(data_root=DATASET_PATH + "/train",
-                                         img_suffix='.jpeg',
+        train_dataset = KaggleOCTDataset(data_root=DATASET_PATH,
                                          transform=img_transforms,
                                          classes=classes,
                                          mode="train",
                                          cv=CV,
                                          cv_counter=i
                                          )
-        val_dataset = KaggleOCTDataset(data_root=DATASET_PATH + "/train",
-                                       img_suffix='.jpeg',
+        val_dataset = KaggleOCTDataset(data_root=DATASET_PATH,
                                        transform=img_transforms,
                                        classes=classes,
                                        mode="val",
@@ -64,12 +67,11 @@ if __name__ == "__main__":
                                        cv_counter=i
                                        )
 
-        test_dataset = KaggleOCTDataset(data_root=DATASET_PATH + "/test",
-                                        img_suffix='.jpeg',
-                                        transform=img_transforms,
-                                        classes=classes,
-                                        mode="test",
-                                        )
+        test_dataset = OCTDataset(data_root=TEST_DATASET_PATH,
+                                  transform=img_transforms,
+                                  discard_folders=[],
+                                  extra_folder_names="TIFFs/8bitTIFFs"
+                                  )
 
         simclr_model = SimCLR.load_from_checkpoint(os.path.join(CHECKPOINT_PATH, "SimCLR", "SimCLR_" + str(i),
                                                                 "SimCLR_" + str(i) + ".ckpt"))
@@ -79,40 +81,43 @@ if __name__ == "__main__":
                                                    dataset=train_dataset,
                                                    device=device,
                                                    batch_size=batch_size,
-                                                   num_workers=1)
+                                                   num_workers=4)
         print("validation data preparation")
         val_feats_simclr = prepare_data_features(model=simclr_model,
                                                  dataset=val_dataset,
                                                  device=device,
                                                  batch_size=batch_size,
-                                                 num_workers=1)
+                                                 num_workers=4)
         print("testing data preparation")
         test_feats_simclr = prepare_data_features(model=simclr_model,
                                                   dataset=test_dataset,
                                                   device=device,
                                                   batch_size=batch_size,
-                                                  num_workers=1)
+                                                  num_workers=4)
 
         strategy = None if devices == 1 else DDPStrategy(find_unused_parameters=False)
-        logreg_model, logreg_result = train_logreg(devices=devices,
-                                                   strategy=strategy,
-                                                   batch_size=batch_size,
-                                                   train_feats_data=train_feats_simclr,
-                                                   val_feats_data=val_feats_simclr,
-                                                   test_feats_data=test_feats_simclr,
-                                                   feature_dim=train_feats_simclr.tensors[0].shape[1],
-                                                   classes=classes,
-                                                   checkpoint_path=CHECKPOINT_PATH + "LogisticRegression",
-                                                   lr=1e-3,
-                                                   weight_decay=1e-3,
-                                                   max_epochs=100,
-                                                   save_model_name="LogisticRegression" + str(i))
-        with open('log/kaggle_accuracy_logreg.txt', 'a') as f:
+        lmodel_model, lmodel_result = train_linear_model(devices=devices,
+                                                         strategy=strategy,
+                                                         batch_size=batch_size,
+                                                         train_feats_data=train_feats_simclr,
+                                                         val_feats_data=val_feats_simclr,
+                                                         test_feats_data=test_feats_simclr,
+                                                         feature_dim=train_feats_simclr.tensors[0].shape[1],
+                                                         classes=classes,
+                                                         checkpoint_path=CHECKPOINT_PATH + "LinearModel",
+                                                         lr=1e-3,
+                                                         weight_decay=1e-3,
+                                                         max_epochs=100,
+                                                         # metric=metric,
+                                                         save_model_name="LinearModel" + str(i))
+
+        file_mode = "a" if os.path.exists(f'log/{log_name_suffix}_{metric}_lmodel_{batch_size}.txt') else "w"
+        with open(f'log/{log_name_suffix}_{metric}_lmodel_{batch_size}.txt', file_mode) as f:
             f.write("==================" + str(i) + "==================")
             f.write('\n')
-            f.write(str(logreg_result['train']))
-            f.write('\n' + str(logreg_result['val']))
-            f.write('\n' + str(logreg_result['test']))
+            f.write(str(lmodel_result['train']))
+            f.write('\n' + str(lmodel_result['val']))
+            f.write('\n' + str(lmodel_result['test']))
             f.write('\n')
 
         strategy = None if devices == 1 else DDPStrategy(find_unused_parameters=False)
@@ -127,16 +132,18 @@ if __name__ == "__main__":
                                                    checkpoint_path=CHECKPOINT_PATH + "/ResNet",
                                                    max_epochs=100,
                                                    classes=classes,
+                                                   # metric=metric,
                                                    save_model_name="ResNet" + str(i))
 
-        with open('log/kaggle_accuracy_resnet.txt', 'a') as f:
+        file_mode = "a" if os.path.exists(f'log/{log_name_suffix}_{metric}_resnet_{batch_size}.txt') else "w"
+        with open(f'log/{log_name_suffix}_{metric}_resnet_{batch_size}.txt', file_mode) as f:
             f.write("==================" + str(i) + "==================")
             f.write('\n')
             f.write(str(resnet_result['train']))
             f.write('\n' + str(resnet_result['val']))
             f.write('\n' + str(resnet_result['test']))
             f.write('\n')
-
-        print(f"Accuracy on training set:{resnet_result['train']}")
-        print(f"Accuracy on validation set: {resnet_result['val']}")
-        print(f"Accuracy on test set: {resnet_result['test']}")
+        #
+        # print(f"{metric} on training set:{resnet_result['train']}")
+        # print(f"{metric} on validation set: {resnet_result['val']}")
+        # print(f"{metric} on test set: {resnet_result['test']}")

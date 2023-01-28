@@ -42,21 +42,22 @@ def train_aug(image):
 
 class OCTDataset(Dataset):
 
-    def __init__(self, data_root, img_type="L", img_suffix='.png', transform=train_aug, img_size=IMAGE_SIZE,
-                 folders=None, mode="train", extra_folder_names="", classes=None):
+    def __init__(self, data_root, img_type="L", transform=train_aug, img_size=IMAGE_SIZE,
+                 discard_folders=None, mode="train", extra_folder_names="", classes=None):
         if classes is None:
             classes = [("NORMAL", 0),
                        ("AMD", 1),
                        ("DME", 2)]
         self.data_root = data_root
-        self.img_suffix = img_suffix
         self.transform = transform
         self.img_size = img_size
         self.img_type = img_type
-        self.folders = folders
+        # used for removing some folders
+        self.discard_folders = discard_folders
         self.mode = mode
-        self.img_ids = self.get_img_ids(self.data_root)
         self.classes = classes
+        self.extra_folder_names = extra_folder_names
+        self.img_ids = self.get_img_ids(self.data_root)
 
     def __getitem__(self, index):
         img = self.load_img(index)
@@ -95,7 +96,7 @@ class OCTDataset(Dataset):
         img_ids = []
         for img_file in img_filename_list:
             if any(item == int(img_file.replace("AMD", "").replace("NORMAL", "").replace("DME", ""))
-                   for item in self.folders):
+                   for item in self.discard_folders):
                 continue
             folder = os.path.join(data_root, img_file, self.extra_folder_names)
             img_ids += [os.path.join(folder, id) for id in os.listdir(folder)]

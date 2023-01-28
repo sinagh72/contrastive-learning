@@ -52,21 +52,18 @@ if __name__ == "__main__":
         not_val_idx = np.concatenate((idx, list(set(not_test_idx) - set(val_idx))))
 
         train_dataset = OCTDataset(data_root=DATASET_PATH+"/original data",
-                                   img_suffix='.tif',
                                    transform=img_transforms,
                                    folders=not_train_idx,
                                    extra_folder_names="TIFFs/8bitTIFFs"
                                    )
 
         val_dataset = OCTDataset(data_root=DATASET_PATH+"/original data",
-                                 img_suffix='.tif',
                                  transform=img_transforms,
                                  folders=not_val_idx,
                                  extra_folder_names="TIFFs/8bitTIFFs"
                                  )
 
         test_dataset = OCTDataset(data_root=DATASET_PATH+"/original data",
-                                  img_suffix='.tif',
                                   transform=img_transforms,
                                   folders=not_test_idx,
                                   extra_folder_names="TIFFs/8bitTIFFs"

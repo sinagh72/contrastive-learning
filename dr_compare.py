@@ -22,7 +22,7 @@ if __name__ == "__main__":
     CV = 5
     # Path to the folder where the datasets are
     DATASET_PATH = "data/DR data-reorganized"
-    # Path to the folder where the pretrained models are saved
+    # Path to load simclr and to save resnet and linear models
     CHECKPOINT_PATH = "./dr_saved_models/"
     # In this notebook, we use data loaders with heavier computational processing. It is recommended to use as many
     # workers as possible in a data loader, which corresponds to the number of CPU cores
@@ -140,6 +140,3 @@ if __name__ == "__main__":
                 f.write('\n' + str(resnet_result['test']))
                 f.write('\n')
 
-            print(f"Accuracy on training set:{resnet_result['train']}")
-            print(f"Accuracy on validation set: {resnet_result['val']}")
-            print(f"Accuracy on test set: {resnet_result['test']}")
