@@ -33,7 +33,7 @@ def show_img(train, num_imgs=6, n_views=2):
 if __name__ == "__main__":
     device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
     devices = torch.cuda.device_count()
-    devices = 1
+    #devices = 1
     N_VIEWS = 2
     CV = 5
     # Path to the folder where the datasets are
@@ -75,8 +75,8 @@ if __name__ == "__main__":
         strategy = None if devices == 1 else DDPStrategy(find_unused_parameters=False)
         simclr_model = train_simclr(devices=devices,
                                     strategy=strategy,
-                                    # batch_size=min(len(train_dataset) // devices, 450),
-                                    batch_size=100,
+                                    batch_size=min(len(train_dataset) // devices, 450),
+                                    #batch_size=100,
                                     max_epochs=2000,
                                     train_data=train_dataset,
                                     val_data=val_dataset,
