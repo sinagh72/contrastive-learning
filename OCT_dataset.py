@@ -92,6 +92,7 @@ class OCTDataset(Dataset):
         return len(self.img_ids)
 
     def get_img_ids(self, data_root: str):
+        print(data_root)
         img_filename_list = os.listdir(os.path.join(data_root))
         img_ids = []
         for img_file in img_filename_list:
@@ -151,7 +152,8 @@ class KaggleOCTDataset(Dataset):
 
     def __getitem__(self, index):
         img = self.load_img(index)
-        img = self.transform(img)
+        if self.transform:
+            img = self.transform(img)
         # img = torch.from_numpy(img).permute(2, 0, 1).float()
         img_id = self.img_ids[index]
 

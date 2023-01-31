@@ -70,7 +70,8 @@ if __name__ == "__main__":
         test_dataset = OCTDataset(data_root=TEST_DATASET_PATH,
                                   transform=img_transforms,
                                   discard_folders=[],
-                                  extra_folder_names="TIFFs/8bitTIFFs"
+                                  extra_folder_names="TIFFs/8bitTIFFs",
+                                  classes=classes
                                   )
 
         simclr_model = SimCLR.load_from_checkpoint(os.path.join(CHECKPOINT_PATH, "SimCLR", "SimCLR_" + str(i),

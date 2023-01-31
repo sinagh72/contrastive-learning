@@ -35,7 +35,7 @@ class SimCLR(pl.LightningModule):
 
     def info_nce_loss(self, feats):
         # Calculate cosine similarity between all images in the batch
-        # (128, 1, 128) and (1, 128, 128) --> z.z' = (128, 128) the table relation of images
+        # B=64, n = 2 --> (128, 1, 128) and (1, 128, 128) --> z.z' = (128, 128) the table relation of images
         cos_sim = F.cosine_similarity(feats[:, None, :], feats[None, :, :], dim=-1)
         # Mask out cosine similarity to itself
         self_mask = torch.eye(cos_sim.shape[0], dtype=torch.bool, device=cos_sim.device)
@@ -56,7 +56,7 @@ class SimCLR(pl.LightningModule):
                              dim=-1)
         sim_argsort = comb_sim.argsort(dim=-1, descending=True).argmin(dim=-1)
 
-        return nll
+        return nll, sim_argsort
 
     def compute_loss(self, batch, mode='train'):
         # list of augmentation list
@@ -75,7 +75,7 @@ class SimCLR(pl.LightningModule):
         # plt.close()
         # Encode all images (B*n_view, hidden_dim), hidden_dim=128 in this case
         feats = self.convnet(imgs)
-        nll = self.info_nce_loss(feats)
+        nll, sim_argsort = self.info_nce_loss(feats)
         # Logging ranking metrics
         # log_dict = {mode + '_loss': nll,
         # mode + '_acc_top1': (sim_argsort == 0).float().mean(),
