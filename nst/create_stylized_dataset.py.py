@@ -4,7 +4,7 @@ from PIL import ImageFile
 # from stylize_hdf5_single import stylize_hdf5_single
 import os
 
-from OCT_dataset import KaggleOCTDataset
+from OCT_dataset import OCTDataset, get_kaggle_imgs
 # to generate multiple stylized images per each content image, comment out above and uncomment below
 from stylize_hdf5_multiple import stylize_hdf5_multiple, stylize_dataset_multiple
 
@@ -37,11 +37,11 @@ if __name__ == "__main__":
     os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
     # args = parser.parse_args()
-    content_path = "../data/kaggle_dataset_full/"
+    content_path = "../data/kaggle_tiny/"
     style_dir = "C:/Users/Sina/Downloads/Compressed/train/train"
     out_path = "../data/nst.hdf5"
     alpha = 0.5
-    num_styles = 10
+    style_views = 10
     content_size = 512
     style_size = 256
     save_size = 256
@@ -50,12 +50,13 @@ if __name__ == "__main__":
                ("AMD", 1),
                ("DME", 2)]
 
-    dataset = KaggleOCTDataset(data_root=content_path,
-                               transform=None,
-                               classes=classes,
-                               mode="test",
-                               img_type="RGB"
-                               )
+    dataset = OCTDataset(data_root=content_path,
+                         img_type="RGB",
+                         transform=None,
+                         classes=classes,
+                         mode="test",
+                         dataset_func=get_kaggle_imgs
+                         )
 
     # h5 = h5py.File(content_path, mode='r')
     # imgs = h5['img']
@@ -71,4 +72,4 @@ if __name__ == "__main__":
 
     stylize_dataset_multiple(dataset=dataset, style_dir=style_dir, out_path=out_path, alpha=alpha,
                              content_size=content_size,
-                             style_size=style_size, save_size=save_size, num_styles=num_styles)
+                             style_size=style_size, save_size=save_size, style_views=style_views)

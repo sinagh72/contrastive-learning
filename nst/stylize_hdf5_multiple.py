@@ -39,7 +39,7 @@ def style_transfer(vgg, decoder, content, style, alpha=1.0):
 
 
 def stylize_dataset_multiple(dataset, style_dir, out_path, alpha=1., content_size=1024,
-                             style_size=256, save_size=256, num_styles=10):
+                             style_size=256, save_size=256, style_views=10):
     # collect style files
     style_dir = Path(style_dir)
     style_dir = style_dir.resolve()
@@ -80,18 +80,16 @@ def stylize_dataset_multiple(dataset, style_dir, out_path, alpha=1., content_siz
     Image.MAX_IMAGE_PIXELS = None
     skipped_imgs = []
 
-    tile_ids = []
-    tile_fnames = []
-    tile_labels = []
+    tile_paths = []
+    tile_names = []
 
     # actual style transfer as in AdaIN
     for idx in tqdm(range(len(dataset))):
-        fname = dataset[idx]["img_folder"]
-        id = dataset[idx]["img_id"]
-        label = dataset[idx]["y_true"]
+        img_name = dataset[idx]["img_name"]
+        img_path = dataset[idx]["img_path"]
         # try:
         content_img = dataset[idx]["img"]
-        for style_path in random.sample(styles, num_styles):
+        for style_path in random.sample(styles, style_views):
             style_img = Image.open(style_path).convert('RGB')
             content = content_tf(content_img)
             style = style_tf(style_img)
@@ -105,10 +103,9 @@ def stylize_dataset_multiple(dataset, style_dir, out_path, alpha=1., content_siz
             output = np.array(output_img)
 
             storage.append(output[None])
-            tilename = fname[:-5] + '_stylized_' + os.path.basename(style_path)[:-4] + fname[-5:]
-            tile_fnames.append(tilename)
-            tile_ids.append(id)
-            tile_labels.append(label)
+            tilename = img_name[:-5] + '_stylized_' + os.path.basename(style_path)[:-4] + img_name[-5:]
+            tile_names.append(tilename)
+            tile_paths.append(img_path.replace("../", ""))
             style_img.close()
         content_img.close()
 
@@ -122,9 +119,8 @@ def stylize_dataset_multiple(dataset, style_dir, out_path, alpha=1., content_siz
     #         for item in skipped_imgs:
     #             f.write("%s\n" % item)
 
-    hdf5_file.create_array(hdf5_file.root, 'ids', tile_ids)
-    hdf5_file.create_array(hdf5_file.root, 'fnames', tile_fnames)
-    hdf5_file.create_array(hdf5_file.root, 'labels', tile_labels)
+    hdf5_file.create_array(hdf5_file.root, 'paths', tile_paths)
+    hdf5_file.create_array(hdf5_file.root, 'names', tile_names)
     hdf5_file.close()
 
 
