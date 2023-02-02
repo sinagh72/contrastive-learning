@@ -37,7 +37,7 @@ if __name__ == "__main__":
     os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
     # args = parser.parse_args()
-    content_path = "../data/kaggle_tiny/"
+    content_path = "../data/kaggle_dataset_full/"
     style_dir = "C:/Users/Sina/Downloads/Compressed/train/train"
     out_path = "../data/nst.hdf5"
     alpha = 0.5
