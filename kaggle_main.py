@@ -37,7 +37,7 @@ if __name__ == "__main__":
     N_VIEWS = 2
     CV = 5
     # Path to the folder where the datasets are
-    DATASET_PATH = "data/kaggle_tiny/"
+    DATASET_PATH = "data/kaggle_dataset_full/"
     # Path to the folder where the pretrained models are saved
     CHECKPOINT_PATH = "./kaggle_full_saved_models_nst/SimCLR/"
     # Path to style transferred images

@@ -4,7 +4,7 @@ from torchvision.transforms import transforms, InterpolationMode
 import os
 import torch
 
-from OCT_dataset import OCTDataset, ContrastiveTransformations, train_aug, get_kaggle_imgs, get_duke_imgs
+from OCT_dataset import OCTDataset, get_kaggle_imgs, get_duke_imgs
 from models.simclr import SimCLR
 from train import prepare_data_features, train_resnet, train_linear_model
 
@@ -17,7 +17,6 @@ if __name__ == "__main__":
     torch.multiprocessing.set_sharing_strategy('file_system')
     device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
     devices = torch.cuda.device_count()
-    devices = 8
     N_VIEWS = 2
     CV = 5
     # Path to the folder where the datasets are
@@ -39,8 +38,6 @@ if __name__ == "__main__":
     device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
     print("Device:", device)
     print("Number of workers:", NUM_WORKERS)
-
-    n_views = 2
 
     img_transforms = transforms.Compose([transforms.Resize(size=(128, 128), interpolation=InterpolationMode.BICUBIC),
                                          transforms.ToTensor(),
