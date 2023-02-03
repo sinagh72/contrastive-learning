@@ -19,7 +19,7 @@ if __name__ == "__main__":
     devices = torch.cuda.device_count()
     devices = 8
     N_VIEWS = 2
-    CV = 1
+    CV = 5
     # Path to the folder where the datasets are
     DATASET_PATH = "data/kaggle_dataset_full"
     # Path to load simclr and to save resnet and linear models
@@ -86,6 +86,9 @@ if __name__ == "__main__":
                                                                 "SimCLR_" + str(i) + ".ckpt"))
         batch_size = 64
         print("training data preparation")
+        print(f"training data len: {len(train_dataset)}")
+        print(f"training data len: {len(val_dataset)}")
+        print(f"training data len: {len(test_dataset)}")
         train_feats_simclr = prepare_data_features(model=simclr_model,
                                                    dataset=train_dataset,
                                                    device=device,

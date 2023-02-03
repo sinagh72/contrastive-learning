@@ -121,7 +121,7 @@ def prepare_data_features(model, dataset, device, num_workers, batch_size=64):
         batch_imgs = batch["img"].to(device)
         batch_feats = network(batch_imgs)
         feats.append(batch_feats.detach().cpu())
-        labels.append(batch["y_true"])
+        labels.append(batch["label"])
 
     feats = torch.cat(feats, dim=0)
     labels = torch.cat(labels, dim=0)

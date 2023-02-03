@@ -1,4 +1,5 @@
 import random
+import warnings
 
 import h5py
 import numpy as np
@@ -62,14 +63,14 @@ class OCTDataset(Dataset):
         self.img_size = img_size
         self.img_type = img_type
         self.classes = classes
-        self.style_hdf5_path= style_hdf5_path
-        self.imgs_path = dataset_func(self.data_root, **kwargs)
+        self.style_hdf5_path = style_hdf5_path
+        self.img_paths = dataset_func(self.data_root, **kwargs)
         self.nst_prob = nst_prob
-        if self.style_hdf5_path:
+        if self.style_hdf5_path is not None:
             self.nst_img, self.nst_img_dic, self.nst_img_names = get_dfDict(style_hdf5_path)
 
     def __getitem__(self, index):
-        img_path = self.imgs_path[index]
+        img_path = self.img_paths[index]
         img_path = img_path.replace("\\", "/")
 
         if random.uniform(0, 1) < self.nst_prob and self.style_hdf5_path is not None:
@@ -85,7 +86,7 @@ class OCTDataset(Dataset):
          - DME    -> 2
          - Normal -> 0
         """
-        img_path = self.imgs_path[index]
+        img_path = self.img_paths[index]
         label = 0
         for c, v in self.classes:
             if c in img_path:
@@ -105,7 +106,7 @@ class OCTDataset(Dataset):
         Return:
             - returns the size of the dataset
         """
-        return len(self.imgs_path)
+        return len(self.img_paths)
 
     def load_img(self, img_path):
         img = Image.open(img_path).convert(self.img_type)
@@ -182,6 +183,10 @@ def get_kaggle_imgs(data_root: str, **kwargs):
             cv_len = len(imgs_dict.keys()) // kwargs["cv"]
             start_idx = kwargs["cv_counter"] * cv_len
             end_idx = start_idx + cv_len if kwargs["cv_counter"] < kwargs["cv"] - 1 else len(imgs_dict.keys())
+            if kwargs["cv"] == 1:
+                # TODO: add the split percentage argument
+                warnings.warn("Cross validation is 1! valid split percentage not implemented yet!")
+                pass
             keys = list(imgs_dict.keys())
             for key, val in imgs_dict.items():
                 if key not in keys[start_idx:end_idx] and kwargs["mode"] == "train":
