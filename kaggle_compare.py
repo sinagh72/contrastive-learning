@@ -4,7 +4,7 @@ from torchvision.transforms import transforms, InterpolationMode
 import os
 import torch
 
-from OCT_dataset import OCTDataset, KaggleOCTDataset, ContrastiveTransformations, train_aug
+from OCT_dataset import OCTDataset, ContrastiveTransformations, train_aug, get_kaggle_imgs, get_duke_imgs
 from models.simclr import SimCLR
 from train import prepare_data_features, train_resnet, train_linear_model
 
@@ -19,11 +19,13 @@ if __name__ == "__main__":
     devices = torch.cuda.device_count()
     devices = 8
     N_VIEWS = 2
-    CV = 5
+    CV = 1
     # Path to the folder where the datasets are
     DATASET_PATH = "data/kaggle_dataset_full"
     # Path to load simclr and to save resnet and linear models
     CHECKPOINT_PATH = "./kaggle_full_saved_models/"
+    # Path to style transferred images
+    NST_PATH = "data/nst.hdf5"
 
     TEST_DATASET_PATH = "data/2014_BOE_Srinivasan_2/Publication_Dataset/original data"
     # In this notebook, we use data loaders with heavier computational processing. It is recommended to use as many
@@ -49,29 +51,35 @@ if __name__ == "__main__":
                ("DME", 2)]
 
     metric = "accuracy"
-    log_name_suffix = "kaggle_full_"
+    log_name_suffix = "kaggle_full_nst"
 
     for i in range(CV):
-        train_dataset = KaggleOCTDataset(data_root=DATASET_PATH,
-                                         transform=img_transforms,
-                                         classes=classes,
-                                         mode="train",
-                                         cv=CV,
-                                         cv_counter=i
-                                         )
-        val_dataset = KaggleOCTDataset(data_root=DATASET_PATH,
-                                       transform=img_transforms,
-                                       classes=classes,
-                                       mode="val",
-                                       cv=CV,
-                                       cv_counter=i
-                                       )
+        train_dataset = OCTDataset(data_root=DATASET_PATH,
+                                   transform=img_transforms,
+                                   classes=classes,
+                                   mode="train",
+                                   style_hdf5_path=NST_PATH,
+                                   dataset_func=get_kaggle_imgs,
+                                   cv=CV,
+                                   cv_counter=i
+                                   )
+        val_dataset = OCTDataset(data_root=DATASET_PATH,
+                                 transform=img_transforms,
+                                 dataset_func=get_kaggle_imgs,
+                                 classes=classes,
+                                 mode="val",
+                                 style_hdf5_path=NST_PATH,
+                                 cv=CV,
+                                 cv_counter=i
+                                 )
 
         test_dataset = OCTDataset(data_root=TEST_DATASET_PATH,
                                   transform=img_transforms,
-                                  discard_folders=[],
-                                  extra_folder_names="TIFFs/8bitTIFFs",
-                                  classes=classes
+                                  dataset_func=get_duke_imgs,
+                                  classes=classes,
+                                  ignore_folders=[],
+                                  sub_folders_name="TIFFs/8bitTIFFs",
+                                  
                                   )
 
         simclr_model = SimCLR.load_from_checkpoint(os.path.join(CHECKPOINT_PATH, "SimCLR", "SimCLR_" + str(i),

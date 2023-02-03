@@ -41,7 +41,7 @@ class ResNet(pl.LightningModule):
         return [optimizer], [lr_scheduler]
 
     def _calculate_loss(self, batch):
-        imgs, labels = batch["img"], batch["y_true"]
+        imgs, labels = batch["img"], batch["label"]
         preds = self.model(imgs)
         loss = F.cross_entropy(preds, labels)
         return {"loss": loss, "preds": torch.flatten(preds.argmax(dim=-1)), "labels": torch.flatten(labels)}

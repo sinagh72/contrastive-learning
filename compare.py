@@ -53,20 +53,20 @@ if __name__ == "__main__":
 
         train_dataset = OCTDataset(data_root=DATASET_PATH+"/original data",
                                    transform=img_transforms,
-                                   folders=not_train_idx,
-                                   extra_folder_names="TIFFs/8bitTIFFs"
+                                   ignore_folders=not_train_idx,
+                                   sub_folders_name="TIFFs/8bitTIFFs"
                                    )
 
         val_dataset = OCTDataset(data_root=DATASET_PATH+"/original data",
                                  transform=img_transforms,
-                                 folders=not_val_idx,
-                                 extra_folder_names="TIFFs/8bitTIFFs"
+                                 ignore_folders=not_val_idx,
+                                 sub_folders_name="TIFFs/8bitTIFFs"
                                  )
 
         test_dataset = OCTDataset(data_root=DATASET_PATH+"/original data",
                                   transform=img_transforms,
-                                  folders=not_test_idx,
-                                  extra_folder_names="TIFFs/8bitTIFFs"
+                                  ignore_folders=not_test_idx,
+                                  sub_folders_name="TIFFs/8bitTIFFs"
                                   )
 
         # training_set, val_set = random_split(train_dataset, [0.7, 0.3], generator=torch.Generator().manual_seed(42))
