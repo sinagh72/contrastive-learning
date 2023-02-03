@@ -27,7 +27,8 @@ class ContrastiveTransformations(object):
 
 
 def train_aug(img):
-    transfrom = transforms.Compose([transforms.RandomHorizontalFlip(p=0.5),
+    transform = transforms.Compose([
+                                    transforms.RandomHorizontalFlip(p=0.5),
                                     transforms.RandomRotation(degrees=45),
                                     transforms.RandomPerspective(distortion_scale=0.5, p=0.5),
                                     # transforms.RandomResizedCrop(size=128, scale=(0.25, 0.75),
@@ -38,15 +39,15 @@ def train_aug(img):
                                     #                            saturation=0.5,
                                     #                            hue=0.1)
                                     # ], p=0.8),
-                                    # transforms.RandomGrayscale(p=0.2),
+                                    transforms.RandomGrayscale(p=0.2),
                                     transforms.GaussianBlur(kernel_size=9),
                                     transforms.Grayscale(3),
-                                    transforms.Resize(128, InterpolationMode.BICUBIC),
+                                    transforms.Resize((128, 128), InterpolationMode.BICUBIC),
                                     transforms.ToTensor(),
                                     transforms.Normalize((0.5,), (0.5,)),
                                     # transforms.Lambda(lambda x: torch.cat([x, x, x], 0)),
                                     ])
-    img = transfrom(img.copy())
+    img = transform(img.copy())
     return img
 
 
@@ -76,9 +77,13 @@ class OCTDataset(Dataset):
         if random.uniform(0, 1) < self.nst_prob and self.style_hdf5_path is not None:
             img = self.load_nst_img(img_path)
         else:
-            img = self.load_img(img_path)
+            image = self.load_img(img_path)
             if self.transform:
-                img = self.transform(img)
+                img = self.transform(image)
+            else:
+                img = [torch.from_numpy(np.asarray(image)).permute(2, 0, 1).float()]
+                # print(img.shape)
+            # image.show()
         # img = torch.from_numpy(img).permute(2, 0, 1).float()
         """
         if patient has:

@@ -39,7 +39,7 @@ if __name__ == "__main__":
     # Path to the folder where the datasets are
     DATASET_PATH = "data/kaggle_dataset_full/"
     # Path to the folder where the pretrained models are saved
-    CHECKPOINT_PATH = "./kaggle_full_saved_models_nst/SimCLR/"
+    CHECKPOINT_PATH = "./kaggle_dataset_full/SimCLR/"
     # Path to style transferred images
     NST_PATH = "data/nst.hdf5"
     # In this notebook, we use data loaders with heavier computational processing. It is recommended to use as many
@@ -63,7 +63,7 @@ if __name__ == "__main__":
                                    mode="train",
                                    cv=CV,
                                    cv_counter=i,
-                                   style_hdf5_path=NST_PATH,
+                                   # style_hdf5_path=NST_PATH,
                                    dataset_func=get_kaggle_imgs,
                                    )
         # print(set(np.array(range(1, PATIENTS + 1))) -set(choices))
@@ -73,7 +73,7 @@ if __name__ == "__main__":
                                  mode="val",
                                  cv=CV,
                                  cv_counter=i,
-                                 style_hdf5_path=NST_PATH,
+                                 # style_hdf5_path=NST_PATH,
                                  dataset_func=get_kaggle_imgs,
                                  )
         print("len train:", len(train_dataset))
@@ -82,7 +82,7 @@ if __name__ == "__main__":
         simclr_model = train_simclr(devices=devices,
                                     strategy=strategy,
                                     batch_size=min(len(train_dataset) // devices, 450),
-                                    # batch_size=100,
+                                    # batch_size=4,
                                     max_epochs=2000,
                                     train_data=train_dataset,
                                     val_data=val_dataset,
