@@ -27,7 +27,7 @@ class ContrastiveTransformations(object):
 
 
 def train_aug(img):
-    transform = transforms.Compose([
+    transform = transforms.Compose([transforms.Resize((128, 128), InterpolationMode.BICUBIC),
                                     transforms.RandomHorizontalFlip(p=0.5),
                                     transforms.RandomRotation(degrees=45),
                                     transforms.RandomPerspective(distortion_scale=0.5, p=0.5),
@@ -42,7 +42,7 @@ def train_aug(img):
                                     transforms.RandomGrayscale(p=0.2),
                                     transforms.GaussianBlur(kernel_size=9),
                                     transforms.Grayscale(3),
-                                    transforms.Resize((128, 128), InterpolationMode.BICUBIC),
+                                    
                                     transforms.ToTensor(),
                                     transforms.Normalize((0.5,), (0.5,)),
                                     # transforms.Lambda(lambda x: torch.cat([x, x, x], 0)),
