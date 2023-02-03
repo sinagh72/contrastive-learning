@@ -4,3 +4,5 @@
 /data/kaggle_dataset/
 
 /data/kaggle_dataset_full/
+/nst/__pycache__/
+/models/__pycache__/
