@@ -20,9 +20,9 @@ if __name__ == "__main__":
     N_VIEWS = 2
     CV = 5
     # Path to the folder where the datasets are
-    DATASET_PATH = "data/kaggle_dataset_full/"
+    DATASET_PATH = "data/kaggle_dataset_balanced/"
     # Path to load simclr and to save resnet and linear models
-    CHECKPOINT_PATH = "./kaggle_full_saved_models/"
+    CHECKPOINT_PATH = "./kaggle_saved_models_balanced/"
     # Path to style transferred images
     NST_PATH = "data/nst.hdf5"
 
@@ -48,7 +48,7 @@ if __name__ == "__main__":
                ("DME", 2)]
 
     metric = "accuracy"
-    log_name_suffix = "kaggle_full_nst"
+    log_name_suffix = "kaggle_balanced"
 
     for i in range(CV):
         train_dataset = OCTDataset(data_root=DATASET_PATH,
@@ -84,8 +84,8 @@ if __name__ == "__main__":
         batch_size = 64
         print("training data preparation")
         print(f"training data len: {len(train_dataset)}")
-        print(f"training data len: {len(val_dataset)}")
-        print(f"training data len: {len(test_dataset)}")
+        print(f"validation data len: {len(val_dataset)}")
+        print(f"testing data len: {len(test_dataset)}")
         train_feats_simclr = prepare_data_features(model=simclr_model,
                                                    dataset=train_dataset,
                                                    device=device,

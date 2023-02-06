@@ -33,8 +33,6 @@ class LinearModel(pl.LightningModule):
             self.val_cm = MulticlassPrecision(num_classes=len(self.hparams.classes), average=None)
             self.test_cm = MulticlassPrecision(num_classes=len(self.hparams.classes), average=None)
 
-
-
     def configure_optimizers(self):
         optimizer = optim.AdamW(self.parameters(),
                                 lr=self.hparams.lr,
