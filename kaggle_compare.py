@@ -48,7 +48,7 @@ if __name__ == "__main__":
                ("DME", 2)]
 
     metric = "accuracy"
-    log_name_suffix = "kaggle_balanced"
+    log_name_suffix = "kaggle_balanced_2"
 
     for i in range(CV):
         train_dataset = OCTDataset(data_root=DATASET_PATH,
@@ -118,7 +118,7 @@ if __name__ == "__main__":
                                                          weight_decay=1e-3,
                                                          max_epochs=100,
                                                          # metric=metric,
-                                                         save_model_name="LinearModel" + str(i))
+                                                         save_model_name="LinearModel2" + str(i))
 
         file_mode = "a" if os.path.exists(f'log/{log_name_suffix}_{metric}_lmodel_{batch_size}.txt') else "w"
         with open(f'log/{log_name_suffix}_{metric}_lmodel_{batch_size}.txt', file_mode) as f:
@@ -138,7 +138,7 @@ if __name__ == "__main__":
                                                    test_data=test_dataset,
                                                    lr=1e-3,
                                                    weight_decay=2e-4,
-                                                   checkpoint_path=CHECKPOINT_PATH + "/ResNet",
+                                                   checkpoint_path=CHECKPOINT_PATH + "/ResNet2",
                                                    max_epochs=100,
                                                    classes=classes,
                                                    # metric=metric,
