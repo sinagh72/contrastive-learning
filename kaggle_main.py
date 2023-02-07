@@ -31,7 +31,6 @@ def show_img(train, num_imgs=6, n_views=2):
 
 
 if __name__ == "__main__":
-    device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
     devices = torch.cuda.device_count()
     # devices = 1
     N_VIEWS = 2
@@ -39,7 +38,7 @@ if __name__ == "__main__":
     # Path to the folder where the datasets are
     DATASET_PATH = "data/kaggle_dataset_balanced/"
     # Path to the folder where the pretrained models are saved
-    CHECKPOINT_PATH = "./kaggle_dataset_balanced/SimCLR/"
+    CHECKPOINT_PATH = "./kaggle_dataset_balanced-test/SimCLR/"
     # Path to style transferred images
     NST_PATH = "data/nst.hdf5"
     # In this notebook, we use data loaders with heavier computational processing. It is recommended to use as many

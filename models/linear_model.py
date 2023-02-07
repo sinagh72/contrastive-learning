@@ -49,14 +49,23 @@ class LinearModel(pl.LightningModule):
         loss = F.cross_entropy(preds, labels)
         return {"loss": loss, "preds": torch.flatten(preds.argmax(dim=-1)), "labels": torch.flatten(labels)}
 
-    def training_step(self, batch, batch_idx):
-        return self._calculate_loss(batch)
+    def _calculate_loss2(self, batch):
+        all_outputs = self.all_gather(batch, sync_grads=True)
+        feats, labels = all_outputs
+        preds = self.model(feats)
+        loss = F.cross_entropy(preds, labels)
+        return {"loss": loss, "preds": torch.flatten(preds.argmax(dim=-1)), "labels": torch.flatten(labels)}
 
-    def training_step_end(self, batch_parts):
-        preds = batch_parts["preds"]
-        labels = batch_parts["labels"]
-        self.train_cm.update(preds, labels)
-        return batch_parts["loss"]
+    def training_step(self, batch, batch_idx):
+        # return self._calculate_loss2(batch)
+        res = self._calculate_loss2(batch)
+        self.train_cm.update(res["preds"], res["labels"])
+        return res["loss"]
+    # def training_step_end(self, batch_parts):
+    #     preds = batch_parts["preds"]
+    #     labels = batch_parts["labels"]
+    #     self.train_cm.update(preds, labels)
+    #     return batch_parts["loss"]
 
     def training_epoch_end(self, outputs):
         cm = self.train_cm.compute()
@@ -69,13 +78,16 @@ class LinearModel(pl.LightningModule):
         self.train_cm.reset()
 
     def validation_step(self, batch, batch_idx):
-        return self._calculate_loss(batch)
+        # return self._calculate_loss2(batch)
+        res = self._calculate_loss2(batch)
+        self.val_cm.update(res["preds"], res["labels"])
+        return res["loss"]
 
-    def validation_step_end(self, batch_parts):
-        preds = batch_parts["preds"]
-        labels = batch_parts["labels"]
-        self.val_cm.update(preds, labels)
-        return batch_parts["loss"]
+    # def validation_step_end(self, batch_parts):
+    #     preds = batch_parts["preds"]
+    #     labels = batch_parts["labels"]
+    #     self.val_cm.update(preds, labels)
+    #     return batch_parts["loss"]
 
     def validation_epoch_end(self, outputs):
         cm = self.val_cm.compute()
@@ -87,7 +99,7 @@ class LinearModel(pl.LightningModule):
         self.val_cm.reset()
 
     def test_step(self, batch, batch_idx):
-        return self._calculate_loss(batch)
+        return self._calculate_loss2(batch)
 
     def test_step_end(self, batch_parts):
         preds = batch_parts["preds"]

@@ -23,7 +23,7 @@ if __name__ == "__main__":
     DATASET_PATH = "data/kaggle_dataset_balanced/"
     # Path to load simclr and to save resnet and linear models
     CHECKPOINT_PATH = "./kaggle_saved_models_balanced/"
-    # Path to style transferred images
+    # Path to style transferred image
     NST_PATH = "data/nst.hdf5"
 
     TEST_DATASET_PATH = "data/2014_BOE_Srinivasan_2/Publication_Dataset/original data"
@@ -48,7 +48,7 @@ if __name__ == "__main__":
                ("DME", 2)]
 
     metric = "accuracy"
-    log_name_suffix = "kaggle_balanced_2"
+    log_name_suffix = "kaggle_balanced_3"
 
     for i in range(CV):
         train_dataset = OCTDataset(data_root=DATASET_PATH,
@@ -113,12 +113,12 @@ if __name__ == "__main__":
                                                          test_feats_data=test_feats_simclr,
                                                          feature_dim=train_feats_simclr.tensors[0].shape[1],
                                                          classes=classes,
-                                                         checkpoint_path=CHECKPOINT_PATH + "LinearModel",
+                                                         checkpoint_path=CHECKPOINT_PATH + "LinearModel2",
                                                          lr=1e-3,
                                                          weight_decay=1e-3,
                                                          max_epochs=100,
                                                          # metric=metric,
-                                                         save_model_name="LinearModel2" + str(i))
+                                                         save_model_name="LinearModel" + str(i))
 
         file_mode = "a" if os.path.exists(f'log/{log_name_suffix}_{metric}_lmodel_{batch_size}.txt') else "w"
         with open(f'log/{log_name_suffix}_{metric}_lmodel_{batch_size}.txt', file_mode) as f:
