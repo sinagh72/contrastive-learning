@@ -46,15 +46,8 @@ class ResNet(pl.LightningModule):
         loss = F.cross_entropy(preds, labels)
         return {"loss": loss, "preds": torch.flatten(preds.argmax(dim=-1)), "labels": torch.flatten(labels)}
 
-    def _calculate_loss2(self, batch):
-        all_outputs = self.all_gather(batch, sync_grads=True)
-        feats, labels = all_outputs
-        preds = self.model(feats)
-        loss = F.cross_entropy(preds, labels)
-        return {"loss": loss, "preds": torch.flatten(preds.argmax(dim=-1)), "labels": torch.flatten(labels)}
-
     def training_step(self, batch, batch_idx):
-        return self._calculate_loss2(batch)
+        return self._calculate_loss(batch)
 
     def training_step_end(self, batch_parts):
         preds = batch_parts["preds"]
@@ -72,7 +65,7 @@ class ResNet(pl.LightningModule):
         self.train_cm.reset()
 
     def validation_step(self, batch, batch_idx):
-        return self._calculate_loss2(batch)
+        return self._calculate_loss(batch)
 
     def validation_step_end(self, batch_parts):
         preds = batch_parts["preds"]
@@ -90,7 +83,7 @@ class ResNet(pl.LightningModule):
         self.val_cm.reset()
 
     def test_step(self, batch, batch_idx):
-        return self._calculate_loss2(batch)
+        return self._calculate_loss(batch)
 
     def test_step_end(self, batch_parts):
         preds = batch_parts["preds"]

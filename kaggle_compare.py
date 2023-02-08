@@ -20,9 +20,9 @@ if __name__ == "__main__":
     N_VIEWS = 2
     CV = 5
     # Path to the folder where the datasets are
-    DATASET_PATH = "data/kaggle_dataset_balanced/"
+    DATASET_PATH = "data/kaggle_dataset_full/"
     # Path to load simclr and to save resnet and linear models
-    CHECKPOINT_PATH = "./kaggle_saved_models_balanced/"
+    CHECKPOINT_PATH = "./kaggle_saved_models_full_2cores/"
     # Path to style transferred image
     NST_PATH = "data/nst.hdf5"
 
