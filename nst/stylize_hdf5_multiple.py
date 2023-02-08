@@ -4,6 +4,8 @@ import sys
 
 from tqdm import tqdm
 
+from OCT_dataset import representation_transform
+
 sys.path.append(os.path.dirname(__file__))
 import argparse
 import random
@@ -91,6 +93,13 @@ def stylize_dataset_multiple(dataset, style_dir, out_path, alpha=1., content_siz
         content_img = dataset[idx]["img"]
         for style_path in random.sample(styles, style_views):
             style_img = Image.open(style_path).convert('RGB')
+            # showing purposes
+            style_img.show("Style image")
+            org_img = Image.fromarray(content_img)
+            org_img.show("Original Image")
+            representation_transform(org_img).show("regular augmentation")
+
+
             content = content_tf(content_img)
             style = style_tf(style_img)
             style = style.to(device).unsqueeze(0)
@@ -99,6 +108,10 @@ def stylize_dataset_multiple(dataset, style_dir, out_path, alpha=1., content_siz
                 output = style_transfer(vgg, decoder, content, style, alpha)
             output = output.cpu().squeeze_(0)
             output_img = torchvision.transforms.ToPILImage()(output)
+
+            output_img.show("nst Image")
+            representation_transform(output_img).show("nst regular augmentation")
+
             output_img = output_img.resize((save_size, save_size), Image.LANCZOS)
             output = np.array(output_img)
 

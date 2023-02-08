@@ -39,7 +39,7 @@ if __name__ == "__main__":
     # Path to the folder where the pretrained models are saved
     CHECKPOINT_PATH = "./kaggle_saved_models_full_2cores/SimCLR/"
     # Path to style transferred images
-    NST_PATH = "data/nst.hdf5"
+    NST_PATH = "data/nst_full.hdf5"
     # In this notebook, we use data loaders with heavier computational processing. It is recommended to use as many
     # workers as possible in a data loader, which corresponds to the number of CPU cores
     NUM_WORKERS = os.cpu_count()

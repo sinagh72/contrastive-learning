@@ -24,7 +24,7 @@ if __name__ == "__main__":
     # Path to load simclr and to save resnet and linear models
     CHECKPOINT_PATH = "./kaggle_saved_models_full_2cores/"
     # Path to style transferred image
-    NST_PATH = "data/nst.hdf5"
+    NST_PATH = "data/nst_full.hdf5"
 
     TEST_DATASET_PATH = "data/2014_BOE_Srinivasan_2/Publication_Dataset/original data"
     # In this notebook, we use data loaders with heavier computational processing. It is recommended to use as many
@@ -48,14 +48,14 @@ if __name__ == "__main__":
                ("DME", 2)]
 
     metric = "accuracy"
-    log_name_suffix = "kaggle_balanced_3"
+    log_name_suffix = "kaggle_full_2cores"
 
     for i in range(CV):
         train_dataset = OCTDataset(data_root=DATASET_PATH,
                                    transform=img_transforms,
                                    classes=classes,
                                    mode="train",
-                                   # style_hdf5_path=NST_PATH,
+                                   style_hdf5_path=NST_PATH,
                                    dataset_func=get_kaggle_imgs,
                                    cv=CV,
                                    cv_counter=i
@@ -65,7 +65,7 @@ if __name__ == "__main__":
                                  dataset_func=get_kaggle_imgs,
                                  classes=classes,
                                  mode="val",
-                                 # style_hdf5_path=NST_PATH,
+                                 style_hdf5_path=NST_PATH,
                                  cv=CV,
                                  cv_counter=i
                                  )

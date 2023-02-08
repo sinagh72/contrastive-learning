@@ -41,14 +41,31 @@ def train_aug(img):
                                     # ], p=0.8),
                                     transforms.RandomGrayscale(p=0.2),
                                     transforms.GaussianBlur(kernel_size=9),
-                                    transforms.Grayscale(3),
-                                    
-                                    transforms.ToTensor(),
-                                    transforms.Normalize((0.5,), (0.5,)),
+                                    # transforms.Grayscale(3),
+                                    #
+                                    # transforms.ToTensor(),
+                                    # transforms.Normalize((0.5,), (0.5,)),
                                     # transforms.Lambda(lambda x: torch.cat([x, x, x], 0)),
                                     ])
     img = transform(img.copy())
-    return img
+    return basic_transform(img)
+
+
+def representation_transform(img):
+    transform = transforms.Compose([transforms.RandomHorizontalFlip(p=0.5),
+                                    transforms.RandomRotation(degrees=45),
+                                    transforms.RandomPerspective(distortion_scale=0.5, p=0.5),
+                                    transforms.RandomGrayscale(p=0.2),
+                                    transforms.GaussianBlur(kernel_size=9),
+                                    ])
+    return transform(img.copy())
+
+
+def basic_transform(img):
+    transform = transforms.Compose([transforms.Grayscale(3),
+                                    transforms.ToTensor(),
+                                    transforms.Normalize((0.5,), (0.5,))])
+    return transform(img.copy)
 
 
 class OCTDataset(Dataset):
@@ -81,8 +98,7 @@ class OCTDataset(Dataset):
             if self.transform:
                 img = self.transform(image)
             else:
-                img = [torch.from_numpy(np.asarray(image)).permute(2, 0, 1).float()]
-                # print(img.shape)
+                img = [basic_transform(image)]
             # image.show()
         # img = torch.from_numpy(img).permute(2, 0, 1).float()
         """

@@ -20,8 +20,8 @@ classes = [("NORMAL", 0),
 #                            mode="test",
 #                            img_type="RGB"
 #                            )
-h5 = h5py.File("./data/nst.hdf5")
-images, df_dic, names = get_dfDict("./data/nst.hdf5")
+h5 = h5py.File("./data/nst_full.hdf5")
+images, df_dic, names = get_dfDict("./data/nst_full.hdf5")
 
 trans = ContrastiveTransformations(n_views=2, transformations=train_aug)
 l = [Image.fromarray(h5["img"][0]), Image.fromarray(h5["img"][0])]
