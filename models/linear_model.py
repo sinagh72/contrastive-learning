@@ -69,7 +69,7 @@ class LinearModel(pl.LightningModule):
         self.train_cm.reset()
 
     def validation_step(self, batch, batch_idx):
-        return self._calculate_loss2(batch)
+        return self._calculate_loss(batch)
 
     def validation_step_end(self, batch_parts):
         preds = batch_parts["preds"]
