@@ -38,7 +38,7 @@ if __name__ == "__main__":
 
     # args = parser.parse_args()
     content_path = "../data/kaggle_dataset_full/"
-    style_dir = "C:/Users/Sina/Downloads/Compressed/train/train"
+    style_dir = "/sina/train/"
     out_path = "../data/nst_full.hdf5"
     alpha = 0.5
     style_views = 3
