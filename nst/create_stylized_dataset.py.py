@@ -4,7 +4,7 @@ from PIL import ImageFile
 # from stylize_hdf5_single import stylize_hdf5_single
 import os
 
-from OCT_dataset import OCTDataset, get_kaggle_imgs
+from OCT_dataset import OCTDataset, get_kaggle_imgs, get_duke_imgs
 # to generate multiple stylized images per each content image, comment out above and uncomment below
 from stylize_hdf5_multiple import stylize_hdf5_multiple, stylize_dataset_multiple
 
@@ -37,7 +37,7 @@ if __name__ == "__main__":
     os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
     # args = parser.parse_args()
-    content_path = "../data/kaggle_dataset_full/"
+    content_path = "../data/2014_BOE_Srinivasan_2/Publication_Dataset/original data"
     style_dir = "/sina/train/"
     out_path = "../data/nst_full.hdf5"
     alpha = 0.5
@@ -55,7 +55,9 @@ if __name__ == "__main__":
                          transform=None,
                          classes=classes,
                          mode="test",
-                         dataset_func=get_kaggle_imgs
+                         dataset_func=get_duke_imgs,
+                         ignore_folders=[],
+                         sub_folders_name="TIFFs/8bitTIFFs",
                          )
 
     # h5 = h5py.File(content_path, mode='r')

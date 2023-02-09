@@ -57,7 +57,7 @@ if __name__ == "__main__":
             if key in keys[:val_data_len]:
                 test_img_ids += [img_file_path + "/" + key + count for count in val]
     # images = os.listdir(os.path.join(root, files[0]))
-    # images_idx = random.sample(range(0, len(images)), math.floor(len(images) * percentage))
+    # images_idx = random.sample2(range(0, len(images)), math.floor(len(images) * percentage))
     # tasks = []
     # for i in images_idx:
     #     img_name = images[i].split(image_format)[0]

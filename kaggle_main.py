@@ -35,14 +35,14 @@ if __name__ == "__main__":
     N_VIEWS = 2
     CV = 5
     # Path to the folder where the datasets are
-    DATASET_PATH = "data/kaggle_dataset_balanced/"
+    DATASET_PATH = "data/kaggle_dataset_full/"
     # Path to the folder where the pretrained models are saved
-    CHECKPOINT_PATH = "./kaggle_saved_models_balanced_8cores/SimCLR/"
+    CHECKPOINT_PATH = "./kaggle_saved_models_full_2cores/SimCLR/"
     # Path to style transferred images
-    NST_PATH = "data/nst_full.hdf5"
+    # NST_PATH = "data/nst_full.hdf5"
     # In this notebook, we use data loaders with heavier computational processing. It is recommended to use as many
     # workers as possible in a data loader, which corresponds to the number of CPU cores
-    NUM_WORKERS = os.cpu_count()
+    NUM_WORKERS = os.cpu_count() // 2
 
     # Ensure that all operations are deterministic on GPU (if used) for reproducibility
     torch.backends.cudnn.deterministic = True

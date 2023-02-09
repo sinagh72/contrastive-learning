@@ -96,6 +96,7 @@ def stylize_dataset_multiple(dataset, style_dir, out_path, alpha=1., content_siz
     for idx in tqdm(range(len(dataset))):
         img_name = dataset[idx]["img_name"]
         img_path = dataset[idx]["img_path"]
+
         # try:
         content_img = dataset[idx]["img"]
         for style_path in random.sample(styles, style_views):

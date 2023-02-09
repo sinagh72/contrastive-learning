@@ -42,7 +42,6 @@ def train_aug(img):
                                     transforms.RandomGrayscale(p=0.2),
                                     transforms.GaussianBlur(kernel_size=9),
                                     transforms.Grayscale(3),
-                                    #
                                     transforms.ToTensor(),
                                     transforms.Normalize((0.5,), (0.5,)),
                                     # transforms.Lambda(lambda x: torch.cat([x, x, x], 0)),
@@ -89,7 +88,7 @@ class OCTDataset(Dataset):
             img = self.load_nst_img(img_path)
         else:
             image = self.load_img(img_path)
-            if self.transform:
+            if self.transform is not None:
                 img = self.transform(image)
             else:
                 # throws error
@@ -111,9 +110,10 @@ class OCTDataset(Dataset):
 
         # {'img_path': full path to the img, 'img_folder': folder name, 'img_name': img name, 'img': PIL.Image,
         # 'label': depends on the classes }
-        img_folder = img_path.split(self.data_root)[1].split("/")[0],
-        img_name = img_path.split(self.data_root)[1].split("/")[1],
-        results = dict(img_path=img_path, img=img, label=label)
+        # img_folder = img_path.split(self.data_root)[1].split("/")[0],
+
+        results = dict(img_path=img_path, img_name=img_path.split(self.data_root)[1].split("/")[1], img=img,
+                       label=label)
         return results
 
     def __len__(self):

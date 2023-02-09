@@ -77,6 +77,7 @@ class SimCLR(pl.LightningModule):
         # Encode all images (B*n_view, hidden_dim), hidden_dim=128 in this case
         feats = self.convnet(imgs)
         nll, sim_argsort = self.info_nce_loss(feats)
+        nll = nll.mean()
         # Logging ranking metrics
         # log_dict = {mode + '_loss': nll,
         # mode + '_acc_top1': (sim_argsort == 0).float().mean(),
@@ -88,46 +89,46 @@ class SimCLR(pl.LightningModule):
         # self.log(mode + '_acc_top5', (sim_argsort < 5).float().mean(), sync_dist=True)
         # self.log(mode + '_acc_mean_pos', 1 + sim_argsort.float().mean(), sync_dist=True)
         # count = Batch_size * n_views
-        counts = 1.0 if nll.numel() == 0 else nll.size(dim=0)
-        log_dict = {"loss": nll.sum(), "count": float(counts)}
-        return log_dict
+        # counts = 1.0 if nll.numel() == 0 else nll.size(dim=0)
+        # log_dict = {"loss": nll.sum(), "count": float(counts)}
+        # return log_dict
 
-        # log_dict = {mode + "_loss": nll.mean()}
-        # self.log_dict(log_dict, prog_bar=True, on_step=True, sync_dist=True)
-        # return nll.mean()
+        log_dict = {mode + "_loss": nll}
+        self.log_dict(log_dict, prog_bar=True, on_step=True, sync_dist=True)
+        return nll
 
     def training_step(self, batch, batch_idx):
         return self.compute_loss(batch, mode='train')
 
-    def training_step_end(self, batch_parts):
-        # # do something with both outputs
-        # for k, v in batch_parts.items():
-        #     log_dict[k] = batch_parts[k].mean()
-        nll = batch_parts["loss"]
-        count = batch_parts["count"]
-        log_dict = {"train_loss_step": torch.div(nll, count)}
-        # log_dict = {"train_loss_step": batch_parts["loss"]}
-        self.log_dict(log_dict, prog_bar=True, on_step=True, sync_dist=True)
-        return log_dict["train_loss_step"]
+    # def training_step_end(self, batch_parts):
+    #     # # do something with both outputs
+    #     # for k, v in batch_parts.items():
+    #     #     log_dict[k] = batch_parts[k].mean()
+    #     nll = batch_parts["loss"]
+    #     count = batch_parts["count"]
+    #     log_dict = {"train_loss_step": torch.div(nll, count)}
+    #     # log_dict = {"train_loss_step": batch_parts["loss"]}
+    #     self.log_dict(log_dict, prog_bar=True, on_step=True, sync_dist=True)
+    #     return log_dict["train_loss_step"]
 
     def validation_step(self, batch, batch_idx):
         return self.compute_loss(batch, mode='val')
 
-    def validation_step_end(self, batch_parts):
-        # log_dict = {}
-        # do something with both outputs
-        # for k, v in batch_parts.items():
-        # log_dict[k] = batch_parts[k].mean()
-
-        # self.log_dict(log_dict, prog_bar=True, on_step=True, sync_dist=True)
-        # return batch_parts["val_loss"].mean()
-        # def validation_epoch_end(self, validation_step_outputs):
-        #     loss = torch.stack([x for x in validation_step_outputs]).mean()
-        #     log_dict = {"val_loss": loss}
-        #     self.log_dict(log_dict, prog_bar=True)
-        nll = batch_parts["loss"]
-        count = batch_parts["count"]
-        log_dict = {"val_loss": torch.div(nll, count)}
-        # log_dict = {"val_loss": batch_parts["loss"]}
-        self.log_dict(log_dict, prog_bar=True, on_step=True, sync_dist=True)
-        return log_dict["val_loss"]
+    # def validation_step_end(self, batch_parts):
+    #     # log_dict = {}
+    #     # do something with both outputs
+    #     # for k, v in batch_parts.items():
+    #     # log_dict[k] = batch_parts[k].mean()
+    #
+    #     # self.log_dict(log_dict, prog_bar=True, on_step=True, sync_dist=True)
+    #     # return batch_parts["val_loss"].mean()
+    #     # def validation_epoch_end(self, validation_step_outputs):
+    #     #     loss = torch.stack([x for x in validation_step_outputs]).mean()
+    #     #     log_dict = {"val_loss": loss}
+    #     #     self.log_dict(log_dict, prog_bar=True)
+    #     nll = batch_parts["loss"]
+    #     count = batch_parts["count"]
+    #     log_dict = {"val_loss": torch.div(nll, count)}
+    #     # log_dict = {"val_loss": batch_parts["loss"]}
+    #     self.log_dict(log_dict, prog_bar=True, on_step=True, sync_dist=True)
+    #     return log_dict["val_loss"]

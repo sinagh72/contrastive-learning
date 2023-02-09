@@ -35,20 +35,20 @@ if __name__ == "__main__":
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
 
-    device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
-    print("Device:", device)
     print("Number of workers:", NUM_WORKERS)
 
     img_transforms = transforms.Compose([transforms.Resize(size=(128, 128), interpolation=InterpolationMode.BICUBIC),
+                                         transforms.Grayscale(3),
                                          transforms.ToTensor(),
                                          transforms.Normalize((0.5,), (0.5,)),
-                                         transforms.Lambda(_to_three_channel)])
+                                         ])
     classes = [("NORMAL", 0),
                ("AMD", 1),
                ("DME", 2)]
 
     metric = "accuracy"
     log_name_suffix = "kaggle_full_2cores"
+    batch_size = 256
 
     for i in range(CV):
         train_dataset = OCTDataset(data_root=DATASET_PATH,
@@ -81,7 +81,6 @@ if __name__ == "__main__":
 
         simclr_model = SimCLR.load_from_checkpoint(os.path.join(CHECKPOINT_PATH, "SimCLR", "SimCLR_" + str(i),
                                                                 "SimCLR_" + str(i) + ".ckpt"))
-        batch_size = 64
         print("training data preparation")
         print(f"training data len: {len(train_dataset)}")
         print(f"validation data len: {len(val_dataset)}")
@@ -103,7 +102,7 @@ if __name__ == "__main__":
                                                   device=device,
                                                   batch_size=batch_size,
                                                   num_workers=4)
-
+        print("==================Linear Model==================")
         strategy = None if devices == 1 else DDPStrategy(find_unused_parameters=False)
         lmodel_model, lmodel_result = train_linear_model(devices=devices,
                                                          strategy=strategy,
@@ -128,6 +127,8 @@ if __name__ == "__main__":
             f.write('\n' + str(lmodel_result['val']))
             f.write('\n' + str(lmodel_result['test']))
             f.write('\n')
+
+        print("==================Resnet==================")
 
         strategy = None if devices == 1 else DDPStrategy(find_unused_parameters=False)
         resnet_model, resnet_result = train_resnet(devices=devices,
