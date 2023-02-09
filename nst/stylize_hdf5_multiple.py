@@ -2,6 +2,8 @@
 import os
 import sys
 
+from matplotlib import pyplot as plt
+from torchvision.transforms import transforms
 from tqdm import tqdm
 
 from OCT_dataset import representation_transform
@@ -18,6 +20,7 @@ import torch.nn as nn
 import torchvision.transforms
 from function import adaptive_instance_normalization
 import net
+import cv2
 
 
 def input_transform(size, crop):
@@ -85,6 +88,10 @@ def stylize_dataset_multiple(dataset, style_dir, out_path, alpha=1., content_siz
     tile_paths = []
     tile_names = []
 
+    transform = transforms.Compose([
+        transforms.Grayscale(3),
+    ])
+
     # actual style transfer as in AdaIN
     for idx in tqdm(range(len(dataset))):
         img_name = dataset[idx]["img_name"]
@@ -93,12 +100,24 @@ def stylize_dataset_multiple(dataset, style_dir, out_path, alpha=1., content_siz
         content_img = dataset[idx]["img"]
         for style_path in random.sample(styles, style_views):
             style_img = Image.open(style_path).convert('RGB')
-            # showing purposes
-            style_img.show("Style image")
-            org_img = Image.fromarray(content_img)
-            org_img.show("Original Image")
-            representation_transform(org_img).show("regular augmentation")
 
+            # showing purposes
+            # cv2.imshow("Style image", np.array(style_img))
+            # cv2.waitKey(0)
+            # cv2.destroyAllWindows()
+            cv2.imwrite(f"../data/sample/Style_image_{idx}.jpg", np.array(style_img))
+
+            # cv2.imshow("Original image", np.array(transform(content_img)))
+            # cv2.waitKey(0)
+            # cv2.destroyAllWindows()
+            cv2.imwrite(f"../data/sample/Original_image{idx}.jpg", np.array(content_img))
+
+            # cv2.imshow("regular augmentation", np.array(representation_transform(content_img)))
+            # cv2.waitKey(0)
+            # cv2.destroyAllWindows()
+            cv2.imwrite(f"../data/sample/regular_augmentation_1_{idx}.jpg", np.array(representation_transform(content_img)))
+            cv2.imwrite(f"../data/sample/regular_augmentation_2_{idx}.jpg",
+                        np.array(representation_transform(content_img)))
 
             content = content_tf(content_img)
             style = style_tf(style_img)
@@ -109,8 +128,16 @@ def stylize_dataset_multiple(dataset, style_dir, out_path, alpha=1., content_siz
             output = output.cpu().squeeze_(0)
             output_img = torchvision.transforms.ToPILImage()(output)
 
-            output_img.show("nst Image")
-            representation_transform(output_img).show("nst regular augmentation")
+            # cv2.imshow("nst image", np.array(transform(output_img)))
+            # cv2.waitKey(0)
+            # cv2.destroyAllWindows()
+            cv2.imwrite(f"../data/sample/nst_image{idx}.jpg", np.array(transform(output_img)))
+
+            # cv2.imshow("regular augmentation nst image", np.array(transform(representation_transform(output_img))))
+            # cv2.waitKey(0)
+            # cv2.destroyAllWindows()
+            cv2.imwrite(f"../data/sample/regular_augmentation_nst_image{idx}.jpg",
+                        np.array(transform(representation_transform(output_img))))
 
             output_img = output_img.resize((save_size, save_size), Image.LANCZOS)
             output = np.array(output_img)
