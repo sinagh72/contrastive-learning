@@ -32,7 +32,6 @@ def show_img(train, num_imgs=6, n_views=2):
 
 if __name__ == "__main__":
     devices = torch.cuda.device_count()
-    devices = 2
     N_VIEWS = 2
     CV = 5
     # Path to the folder where the datasets are
@@ -47,7 +46,7 @@ if __name__ == "__main__":
 
     # Ensure that all operations are deterministic on GPU (if used) for reproducibility
     torch.backends.cudnn.deterministic = True
-    torch.backends.cudnn.benchmark = False
+    torch.backends.cudnn.benchmark = True
 
     device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
     print("Device:", device)
