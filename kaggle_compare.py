@@ -1,9 +1,8 @@
-import numpy as np
 from pytorch_lightning.strategies import DDPStrategy
 from torchvision.transforms import transforms, InterpolationMode
 import os
 import torch
-
+from dotenv import load_dotenv
 from OCT_dataset import OCTDataset, get_kaggle_imgs, get_duke_imgs
 from models.simclr import SimCLR
 from train import prepare_data_features, train_resnet, train_linear_model
@@ -19,14 +18,15 @@ if __name__ == "__main__":
     devices = torch.cuda.device_count()
     N_VIEWS = 2
     CV = 5
+    load_dotenv(dotenv_path="./data/.env")
     # Path to the folder where the datasets are
-    DATASET_PATH = "data/kaggle_dataset_full/"
+    DATASET_PATH = os.getenv('KAGGLE_COMPARE_DATASET_PATH')
     # Path to load simclr and to save resnet and linear models
     CHECKPOINT_PATH = "./kaggle_saved_models_full_2cores/"
     # Path to style transferred image
-    NST_PATH = "data/nst_full.hdf5"
+    # NST_PATH = "data/nst_full.hdf5"
 
-    TEST_DATASET_PATH = "data/2014_BOE_Srinivasan_2/Publication_Dataset/original data"
+    TEST_DATASET_PATH = os.getenv("KAGGLE_COMPARE_TEST_DATASET_PATH")
     # In this notebook, we use data loaders with heavier computational processing. It is recommended to use as many
     # workers as possible in a data loader, which corresponds to the number of CPU cores
     NUM_WORKERS = os.cpu_count()
@@ -48,7 +48,7 @@ if __name__ == "__main__":
 
     metric = "accuracy"
     log_name_suffix = "kaggle_full_2cores"
-    batch_size = 256
+    batch_size = 128
 
     for i in range(CV):
         train_dataset = OCTDataset(data_root=DATASET_PATH,
@@ -102,31 +102,6 @@ if __name__ == "__main__":
                                                   device=device,
                                                   batch_size=batch_size,
                                                   num_workers=4)
-        print("==================Linear Model==================")
-        strategy = None if devices == 1 else DDPStrategy(find_unused_parameters=False)
-        lmodel_model, lmodel_result = train_linear_model(devices=devices,
-                                                         strategy=strategy,
-                                                         batch_size=batch_size,
-                                                         train_feats_data=train_feats_simclr,
-                                                         val_feats_data=val_feats_simclr,
-                                                         test_feats_data=test_feats_simclr,
-                                                         feature_dim=train_feats_simclr.tensors[0].shape[1],
-                                                         classes=classes,
-                                                         checkpoint_path=CHECKPOINT_PATH + "LinearModel",
-                                                         lr=1e-3,
-                                                         weight_decay=1e-3,
-                                                         max_epochs=100,
-                                                         # metric=metric,
-                                                         save_model_name="LinearModel" + str(i))
-
-        file_mode = "a" if os.path.exists(f'log/{log_name_suffix}_{metric}_lmodel_{batch_size}.txt') else "w"
-        with open(f'log/{log_name_suffix}_{metric}_lmodel_{batch_size}.txt', file_mode) as f:
-            f.write("==================" + str(i) + "==================")
-            f.write('\n')
-            f.write(str(lmodel_result['train']))
-            f.write('\n' + str(lmodel_result['val']))
-            f.write('\n' + str(lmodel_result['test']))
-            f.write('\n')
 
         print("==================Resnet==================")
 
@@ -153,6 +128,33 @@ if __name__ == "__main__":
             f.write('\n' + str(resnet_result['val']))
             f.write('\n' + str(resnet_result['test']))
             f.write('\n')
+
+            print("==================Linear Model==================")
+            strategy = None if devices == 1 else DDPStrategy(find_unused_parameters=False)
+            lmodel_model, lmodel_result = train_linear_model(devices=devices,
+                                                             strategy=strategy,
+                                                             batch_size=batch_size,
+                                                             train_feats_data=train_feats_simclr,
+                                                             val_feats_data=val_feats_simclr,
+                                                             test_feats_data=test_feats_simclr,
+                                                             feature_dim=train_feats_simclr.tensors[0].shape[1],
+                                                             classes=classes,
+                                                             checkpoint_path=CHECKPOINT_PATH + "LinearModel",
+                                                             lr=1e-3,
+                                                             weight_decay=1e-3,
+                                                             max_epochs=100,
+                                                             # metric=metric,
+                                                             save_model_name="LinearModel" + str(i))
+
+            file_mode = "a" if os.path.exists(f'log/{log_name_suffix}_{metric}_lmodel_{batch_size}.txt') else "w"
+            with open(f'log/{log_name_suffix}_{metric}_lmodel_{batch_size}.txt', file_mode) as f:
+                f.write("==================" + str(i) + "==================")
+                f.write('\n')
+                f.write(str(lmodel_result['train']))
+                f.write('\n' + str(lmodel_result['val']))
+                f.write('\n' + str(lmodel_result['test']))
+                f.write('\n')
+
         #
         # print(f"{metric} on training set:{resnet_result['train']}")
         # print(f"{metric} on validation set: {resnet_result['val']}")

@@ -79,11 +79,11 @@ class SimCLR(pl.LightningModule):
         nll, sim_argsort = self.info_nce_loss(feats)
         nll = nll.mean()
         # Logging ranking metrics
-        # log_dict = {mode + '_loss': nll,
-        # mode + '_acc_top1': (sim_argsort == 0).float().mean(),
-        # mode + '_acc_top5': (sim_argsort < 5).float().mean(),
-        # mode + '_acc_mean_pos': 1 + sim_argsort.float().mean()
-        # }
+        log_dict = {mode + '_loss': nll,
+                    mode + '_acc_top1': (sim_argsort == 0).float().mean(),
+                    mode + '_acc_top5': (sim_argsort < 5).float().mean(),
+                    mode + '_acc_mean_pos': 1 + sim_argsort.float().mean()
+        }
 
         # self.log_dict(log_dict, sync_dist=True)
         # self.log(mode + '_acc_top5', (sim_argsort < 5).float().mean(), sync_dist=True)
@@ -92,8 +92,6 @@ class SimCLR(pl.LightningModule):
         # counts = 1.0 if nll.numel() == 0 else nll.size(dim=0)
         # log_dict = {"loss": nll.sum(), "count": float(counts)}
         # return log_dict
-
-        log_dict = {mode + "_loss": nll}
         self.log_dict(log_dict, prog_bar=True, on_step=True, sync_dist=True)
         return nll
 

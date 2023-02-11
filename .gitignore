@@ -1,12 +1,7 @@
 /saved_models/SimCLR/lightning_logs/
 /saved_models/ResNet2/lightning_logs/
 /saved_models/LogisticRegression2/lightning_logs/
-/data/kaggle_dataset/
-/data/kaggle_dataset_balanced/
-/data/kaggle_dataset_full/
 /nst/__pycache__/
 /models/__pycache__/
 /__pycache__/
-/data/nst_balanced.hdf5
-/data/nst_full.hdf5
-/data/sample2/
+/data/

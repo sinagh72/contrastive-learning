@@ -1,9 +1,8 @@
 import os
 import matplotlib.pyplot as plt
-import numpy as np
 import torchvision
 from pytorch_lightning.strategies import DDPStrategy
-
+from dotenv import load_dotenv
 from OCT_dataset import OCTDataset, ContrastiveTransformations, train_aug, get_kaggle_imgs
 from train import train_simclr
 
@@ -34,10 +33,11 @@ if __name__ == "__main__":
     devices = torch.cuda.device_count()
     N_VIEWS = 2
     CV = 5
+    load_dotenv(dotenv_path="./data/.env")
     # Path to the folder where the datasets are
-    DATASET_PATH = "data/kaggle_dataset_full/"
+    DATASET_PATH = os.getenv('KAGGLE_MAIN_DATASET_PATH')
     # Path to the folder where the pretrained models are saved
-    CHECKPOINT_PATH = "./kaggle_saved_models_full_8cores/SimCLR/"
+    CHECKPOINT_PATH = "./kaggle_saved_models_full_2cores/SimCLR/"
     # Path to style transferred images
     # NST_PATH = "data/nst_full.hdf5"
     # In this notebook, we use data loaders with heavier computational processing. It is recommended to use as many
