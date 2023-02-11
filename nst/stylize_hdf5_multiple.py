@@ -111,7 +111,7 @@ def stylize_dataset_multiple(dataset, style_dir, out_path, alpha=1., content_siz
             # cv2.imshow("Original image", np.array(transform(content_img)))
             # cv2.waitKey(0)
             # cv2.destroyAllWindows()
-            cv2.imwrite(f"../data/sample/Original_image{idx}.jpg", np.array(content_img))
+            cv2.imwrite(f"../data/sample/Original_image_{idx}.jpg", np.array(content_img))
 
             # cv2.imshow("regular augmentation", np.array(representation_transform(content_img)))
             # cv2.waitKey(0)
@@ -132,12 +132,15 @@ def stylize_dataset_multiple(dataset, style_dir, out_path, alpha=1., content_siz
             # cv2.imshow("nst image", np.array(transform(output_img)))
             # cv2.waitKey(0)
             # cv2.destroyAllWindows()
-            cv2.imwrite(f"../data/sample/nst_image{idx}.jpg", np.array(transform(output_img)))
+            cv2.imwrite(f"../data/sample/nst_image_{idx}.jpg", np.array(transform(output_img)))
 
             # cv2.imshow("regular augmentation nst image", np.array(transform(representation_transform(output_img))))
             # cv2.waitKey(0)
             # cv2.destroyAllWindows()
-            cv2.imwrite(f"../data/sample/regular_augmentation_nst_image{idx}.jpg",
+            cv2.imwrite(f"../data/sample/regular_augmentation_nst_image_1_{idx}.jpg",
+                        np.array(transform(representation_transform(output_img))))
+                        
+            cv2.imwrite(f"../data/sample/regular_augmentation_nst_image_2_{idx}.jpg",
                         np.array(transform(representation_transform(output_img))))
 
             output_img = output_img.resize((save_size, save_size), Image.LANCZOS)

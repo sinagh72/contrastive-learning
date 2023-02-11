@@ -39,7 +39,7 @@ if __name__ == "__main__":
     # args = parser.parse_args()
     content_path = "../data/2014_BOE_Srinivasan_2/Publication_Dataset/original data"
     style_dir = "/sina/train/"
-    out_path = "../data/nst_full.hdf5"
+    out_path = "../data/nst_test.hdf5"
     alpha = 0.5
     style_views = 3
     content_size = 512
@@ -58,6 +58,15 @@ if __name__ == "__main__":
                          dataset_func=get_duke_imgs,
                          ignore_folders=[],
                          sub_folders_name="TIFFs/8bitTIFFs",
+                         )
+                         
+                         
+    dataset = OCTDataset(data_root="../data/kaggle_dataset_full",
+                         img_type="RGB",
+                         transform=None,
+                         classes=classes,
+                         mode="test",
+                         dataset_func=get_kaggle_imgs,
                          )
 
     # h5 = h5py.File(content_path, mode='r')
