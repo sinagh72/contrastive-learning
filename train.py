@@ -172,15 +172,10 @@ def train_resnet(batch_size, train_data, val_data, test_data, checkpoint_path,
         trainer.fit(model, train_loader, valid_loader)
         model = ResNet.load_from_checkpoint(trainer.checkpoint_callback.best_model_path)
 
-    tester = pl.Trainer(default_root_dir=model_path,
-                        accelerator="gpu",
-                        devices=1,
-                        log_every_n_steps=1)
-
     # Test best model on validation set
-    train_result = tester.test(model, train_loader, verbose=False)
-    val_result = tester.test(model, valid_loader, verbose=False)
-    test_result = tester.test(model, test_loader, verbose=False)
+    train_result = trainer.test(model, train_loader, verbose=False)
+    val_result = trainer.test(model, valid_loader, verbose=False)
+    test_result = trainer.test(model, test_loader, verbose=False)
     result = {"train": {}, "val": {}, "test": {}}
     print(train_result)
     for c in kwargs["classes"]:
