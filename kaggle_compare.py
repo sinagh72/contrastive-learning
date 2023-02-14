@@ -22,7 +22,7 @@ if __name__ == "__main__":
     # Path to the folder where the datasets are
     DATASET_PATH = os.getenv('KAGGLE_COMPARE_DATASET_PATH')
     # Path to load simclr and to save resnet and linear models
-    CHECKPOINT_PATH = "./kaggle_saved_models_full_8cores_acc/"
+    CHECKPOINT_PATH = "./kaggle_saved_models_full_2cores_acc/"
     # Path to style transferred image
     # NST_PATH = "data/nst_full.hdf5"
 
@@ -47,7 +47,7 @@ if __name__ == "__main__":
                ("DME", 2)]
 
     metric = "accuracy"
-    log_name_suffix = "kaggle_full_8cores_acc"
+    log_name_suffix = "kaggle_full_2cores_acc"
     batch_size = 128
 
     for i in range(CV):
