@@ -1,0 +1,14 @@
+classes:
+- !!python/tuple
+  - NORMAL
+  - 0
+- !!python/tuple
+  - AMD
+  - 1
+- !!python/tuple
+  - DME
+  - 2
+lr: 0.001
+max_epochs: 100
+metric: accuracy
+weight_decay: 0.0002
