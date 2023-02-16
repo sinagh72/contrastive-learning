@@ -4,6 +4,8 @@ from PIL import ImageFile
 # from stylize_hdf5_single import stylize_hdf5_single
 import os
 
+from dotenv import load_dotenv
+
 from OCT_dataset import OCTDataset, get_kaggle_imgs, get_duke_imgs
 # to generate multiple stylized images per each content image, comment out above and uncomment below
 from stylize_hdf5_multiple import stylize_hdf5_multiple, stylize_dataset_multiple
@@ -37,10 +39,7 @@ if __name__ == "__main__":
     os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
     # args = parser.parse_args()
-    content_path = "../data/2014_BOE_Srinivasan_2/Publication_Dataset/original data"
-    style_dir = "/sina/train/"
-    out_path = "../data/nst_test.hdf5"
-    alpha = 0.5
+    alpha = 0.15
     style_views = 3
     content_size = 512
     style_size = 256
@@ -50,24 +49,28 @@ if __name__ == "__main__":
                ("AMD", 1),
                ("DME", 2)]
 
-    dataset = OCTDataset(data_root=content_path,
-                         img_type="RGB",
-                         transform=None,
-                         classes=classes,
-                         mode="test",
-                         dataset_func=get_duke_imgs,
-                         ignore_folders=[],
-                         sub_folders_name="TIFFs/8bitTIFFs",
-                         )
-                         
-                         
-    dataset = OCTDataset(data_root="../data/kaggle_dataset_full",
+    # dataset = OCTDataset(data_root=content_path,
+    #                      img_type="RGB",
+    #                      transform=None,
+    #                      classes=classes,
+    #                      mode="test",
+    #                      dataset_func=get_duke_imgs,
+    #                      ignore_folders=[],
+    #                      sub_folders_name="TIFFs/8bitTIFFs",
+    #                      )
+    load_dotenv(dotenv_path="../data/.env")
+    style_path = os.getenv('STYLES_PATH')
+    DATASET_PATH = os.getenv('KAGGLE_FULL_DATASET_PATH')
+    out_path = "../data/nst_full.hdf5"
+
+    dataset = OCTDataset(data_root=DATASET_PATH,
                          img_type="RGB",
                          transform=None,
                          classes=classes,
                          mode="test",
                          dataset_func=get_kaggle_imgs,
                          )
+
 
     # h5 = h5py.File(content_path, mode='r')
     # imgs = h5['img']
@@ -81,6 +84,6 @@ if __name__ == "__main__":
     #                       fnames=fnames, labels=labels, alpha=alpha, content_size=content_size,
     #                       style_size=style_size, save_size=save_size, num_styles=num_styles)
 
-    stylize_dataset_multiple(dataset=dataset, style_dir=style_dir, out_path=out_path, alpha=alpha,
+    stylize_dataset_multiple(dataset=dataset, style_dir=style_path, out_path=out_path, alpha=alpha,
                              content_size=content_size,
                              style_size=style_size, save_size=save_size, style_views=style_views)

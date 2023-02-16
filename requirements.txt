@@ -9,3 +9,4 @@ captum
 histomicstk
 tables
 python-dotenv
+lightning-bolts

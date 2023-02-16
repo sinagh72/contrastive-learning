@@ -37,7 +37,7 @@ if __name__ == "__main__":
     # Path to the folder where the datasets are
     DATASET_PATH = os.getenv('KAGGLE_BALANCED_DATASET_PATH')
     # Path to the folder where the pretrained models are saved
-    CHECKPOINT_PATH = "./kaggle_saved_models_balanced_8cores/SimCLR/"
+    CHECKPOINT_PATH = "./kaggle_saved_models_balanced_2cores/SimCLR/"
     # Path to style transferred images
     # NST_PATH = "data/nst_full.hdf5"
     # In this notebook, we use data loaders with heavier computational processing. It is recommended to use as many

@@ -18,6 +18,7 @@ def train_simclr(batch_size, max_epochs=500, train_data=None, val_data=None, che
     pl.seed_everything(42)
     model_path = os.path.join(checkpoint_path, save_model_name)
     early_stopping = EarlyStopping(monitor=monitor, patience=50, verbose=False, mode=mode)
+    # logger = TensorBoardLogger(model_path, name=save_model_name + "_tensor_board")
     trainer = pl.Trainer(default_root_dir=model_path,
                          accelerator="gpu",
                          devices=devices,
@@ -28,7 +29,8 @@ def train_simclr(batch_size, max_epochs=500, train_data=None, val_data=None, che
                              ModelCheckpoint(dirpath=model_path, filename=save_model_name,
                                              save_weights_only=True, mode=mode, monitor=monitor),
                              LearningRateMonitor('epoch')],
-                         log_every_n_steps=1)
+                         # logger=logger,
+                         log_every_n_steps=1,)
     trainer.logger._default_hp_metric = None  # Optional logging argument that we don't need
 
     # Check whether pretrained model exists. If yes, load it and skip training
@@ -184,3 +186,48 @@ def train_resnet(batch_size, train_data, val_data, test_data, checkpoint_path,
         result["test"][f"{metric}_" + c[0]] = test_result[0][f"test_{metric}_" + c[0]]
 
     return model, result
+
+
+# def train_new_simclr(batch_size, max_epochs=500, train_data=None, val_data=None, checkpoint_path=None,
+#                      save_model_name=None, devices=1, strategy=None, monitor="", mode="min", **kwargs):
+#     pl.seed_everything(42)
+#     model_path = os.path.join(checkpoint_path, save_model_name)
+#     early_stopping = EarlyStopping(monitor=monitor, patience=50, verbose=False, mode=mode)
+#     logger = TensorBoardLogger(model_path, name=save_model_name + "_tensor_board")
+#     trainer = pl.Trainer(default_root_dir=model_path,
+#                          accelerator="gpu",
+#                          devices=devices,
+#                          strategy=strategy,
+#                          max_epochs=max_epochs,
+#                          callbacks=[
+#                              early_stopping,
+#                              ModelCheckpoint(dirpath=model_path, filename=save_model_name,
+#                                              save_weights_only=True, mode=mode, monitor=monitor),
+#                              LearningRateMonitor('epoch')],
+#                          logger=logger,
+#                          log_every_n_steps=1,
+#                          sync_batchnorm=True)
+#     trainer.logger._default_hp_metric = None  # Optional logging argument that we don't need
+#
+#     # Check whether pretrained model exists. If yes, load it and skip training
+#     if os.path.isfile(model_path):
+#         print(f'Found pretrained model at {model_path}, loading...')
+#         model = SimCLR.load_from_checkpoint(model_path)  # Automatically loads the model with the saved hyperparameters
+#     else:
+#         train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True,
+#                                   drop_last=True, pin_memory=True, num_workers=NUM_WORKERS)
+#         weight_path = 'https://pl-bolts-weights.s3.us-east-2.amazonaws.com/simclr/bolts_simclr_imagenet' \
+#                       ' / simclr_imagenet.ckpt'
+#         simclr = SimCLR.load_from_checkpoint(weight_path, strict=False)
+#         model = simclr_module.SimCLR(gpus=devices, nodes=1, batch_size=batch_size)
+#         if val_data:
+#             val_loader = DataLoader(val_data, batch_size=batch_size, shuffle=False,
+#                                     drop_last=False, pin_memory=True, num_workers=NUM_WORKERS)
+#
+#             trainer.fit(model, train_loader, val_loader)
+#         else:
+#             trainer.fit(model, train_loader)
+#         # Load best checkpoint after training
+#         model = SimCLR.load_from_checkpoint(trainer.checkpoint_callback.best_model_path)
+#
+#     return model
