@@ -153,7 +153,8 @@ def train_resnet(batch_size, train_data, val_data, test_data, checkpoint_path,
                                         dirpath=model_path, filename=save_model_name, save_weights_only=True, mode="min"
                                         , monitor="val_loss", save_top_k=1),
                                     LearningRateMonitor("epoch")],
-                         log_every_n_steps=1)
+                         log_every_n_steps=1,
+                         sync_batchnorm=True)
     trainer.logger._default_hp_metric = None
 
     # Data loaders
