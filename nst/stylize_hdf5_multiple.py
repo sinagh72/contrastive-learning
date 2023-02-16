@@ -44,7 +44,7 @@ def style_transfer(vgg, decoder, content, style, alpha=1.0):
 
 
 def stylize_dataset_multiple(dataset, style_dir, out_path, alpha=1., content_size=1024,
-                             style_size=256, save_size=256, style_views=10):
+                             style_size=256, save_size=256, style_views=10, save_sample=False):
     # collect style files
     style_dir = Path(style_dir)
     style_dir = style_dir.resolve()
@@ -101,25 +101,6 @@ def stylize_dataset_multiple(dataset, style_dir, out_path, alpha=1., content_siz
         content_img = dataset[idx]["img"]
         for style_path in random.sample(styles, style_views):
             style_img = Image.open(style_path).convert('RGB')
-
-            # showing purposes
-            # cv2.imshow("Style image", np.array(style_img))
-            # cv2.waitKey(0)
-            # cv2.destroyAllWindows()
-            cv2.imwrite(f"../data/sample/Style_image_{idx}.jpg", np.array(style_img))
-
-            # cv2.imshow("Original image", np.array(transform(content_img)))
-            # cv2.waitKey(0)
-            # cv2.destroyAllWindows()
-            cv2.imwrite(f"../data/sample/Original_image_{idx}.jpg", np.array(content_img))
-
-            # cv2.imshow("regular augmentation", np.array(representation_transform(content_img)))
-            # cv2.waitKey(0)
-            # cv2.destroyAllWindows()
-            cv2.imwrite(f"../data/sample/regular_augmentation_1_{idx}.jpg", np.array(representation_transform(content_img)))
-            cv2.imwrite(f"../data/sample/regular_augmentation_2_{idx}.jpg",
-                        np.array(representation_transform(content_img)))
-
             content = content_tf(content_img)
             style = style_tf(style_img)
             style = style.to(device).unsqueeze(0)
@@ -128,20 +109,18 @@ def stylize_dataset_multiple(dataset, style_dir, out_path, alpha=1., content_siz
                 output = style_transfer(vgg, decoder, content, style, alpha)
             output = output.cpu().squeeze_(0)
             output_img = torchvision.transforms.ToPILImage()(output)
-
-            # cv2.imshow("nst image", np.array(transform(output_img)))
-            # cv2.waitKey(0)
-            # cv2.destroyAllWindows()
-            cv2.imwrite(f"../data/sample/nst_image_{idx}.jpg", np.array(transform(output_img)))
-
-            # cv2.imshow("regular augmentation nst image", np.array(transform(representation_transform(output_img))))
-            # cv2.waitKey(0)
-            # cv2.destroyAllWindows()
-            cv2.imwrite(f"../data/sample/regular_augmentation_nst_image_1_{idx}.jpg",
-                        np.array(transform(representation_transform(output_img))))
-                        
-            cv2.imwrite(f"../data/sample/regular_augmentation_nst_image_2_{idx}.jpg",
-                        np.array(transform(representation_transform(output_img))))
+            if save_sample:
+                cv2.imwrite(f"../data/sample/Style_image_{idx}.jpg", np.array(style_img))
+                cv2.imwrite(f"../data/sample/regular_augmentation_1_{idx}.jpg",
+                            np.array(representation_transform(content_img)))
+                cv2.imwrite(f"../data/sample/regular_augmentation_2_{idx}.jpg",
+                            np.array(representation_transform(content_img)))
+                cv2.imwrite(f"../data/sample/Original_image_{idx}.jpg", np.array(content_img))
+                cv2.imwrite(f"../data/sample/nst_image_{idx}.jpg", np.array(transform(output_img)))
+                cv2.imwrite(f"../data/sample/regular_augmentation_nst_image_1_{idx}.jpg",
+                            np.array(transform(representation_transform(output_img))))
+                cv2.imwrite(f"../data/sample/regular_augmentation_nst_image_2_{idx}.jpg",
+                            np.array(transform(representation_transform(output_img))))
 
             output_img = output_img.resize((save_size, save_size), Image.LANCZOS)
             output = np.array(output_img)

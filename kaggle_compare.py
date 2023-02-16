@@ -20,9 +20,9 @@ if __name__ == "__main__":
     CV = 5
     load_dotenv(dotenv_path="./data/.env")
     # Path to the folder where the datasets are
-    DATASET_PATH = os.getenv('KAGGLE_COMPARE_DATASET_PATH')
+    DATASET_PATH = os.getenv('KAGGLE_BALANCED_DATASET_PATH')
     # Path to load simclr and to save resnet and linear models
-    CHECKPOINT_PATH = "./kaggle_saved_models_balanced_8cores_acc/"
+    CHECKPOINT_PATH = "./kaggle_saved_models_balanced_2cores/"
     # Path to style transferred image
     # NST_PATH = "data/nst_full.hdf5"
 
@@ -47,7 +47,7 @@ if __name__ == "__main__":
                ("DME", 2)]
 
     metric = "accuracy"
-    log_name_suffix = "kaggle_balanced_8cores_acc"
+    log_name_suffix = "kaggle_balanced_2cores"
     batch_size = 128
 
     for i in range(CV):
