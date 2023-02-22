@@ -1,16 +1,13 @@
-from pytorch_lightning.strategies import DDPStrategy
-from torchvision.transforms import transforms, InterpolationMode
 import os
+
 import torch
 from dotenv import load_dotenv
+from pytorch_lightning.strategies import DDPStrategy
+from torchvision.transforms import transforms, InterpolationMode
+
 from OCT_dataset import OCTDataset, get_kaggle_imgs, get_duke_imgs
 from models.simclr import SimCLR
 from train import prepare_data_features, train_resnet, train_linear_model
-
-
-def _to_three_channel(x):
-    return torch.cat([x, x, x], 0)
-
 
 if __name__ == "__main__":
     torch.multiprocessing.set_sharing_strategy('file_system')
@@ -22,9 +19,9 @@ if __name__ == "__main__":
     # Path to the folder where the datasets are
     DATASET_PATH = os.getenv('KAGGLE_BALANCED_DATASET_PATH')
     # Path to load simclr and to save resnet and linear models
-    CHECKPOINT_PATH = "./kaggle_saved_models_balanced_2cores_acc/"
+    CHECKPOINT_PATH = "./kaggle_saved_models_very_balanced_2cores_acc/"
     # Path to style transferred image
-    # NST_PATH = "data/nst_full.hdf5"
+    # NST_PATH = "data/nst_balanced.hdf5"
 
     TEST_DATASET_PATH = os.getenv("KAGGLE_COMPARE_TEST_DATASET_PATH")
     # In this notebook, we use data loaders with heavier computational processing. It is recommended to use as many
@@ -47,7 +44,7 @@ if __name__ == "__main__":
                ("DME", 2)]
 
     metric = "accuracy"
-    log_name_suffix = "kaggle_balanced_2cores_acc"
+    log_name_suffix = "kaggle_very_balanced_2cores_acc"
     batch_size = 128
 
     for i in range(CV):

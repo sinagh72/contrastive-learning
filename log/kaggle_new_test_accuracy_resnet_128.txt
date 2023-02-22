@@ -1,0 +1,8 @@
+====================================
+{'accuracy_NORMAL': 0.830082356929779, 'accuracy_AMD': 1.0, 'accuracy_DME': 0.999565601348877}
+{'accuracy_NORMAL': 0.6240310072898865, 'accuracy_AMD': 0.9108527302742004, 'accuracy_DME': 0.856589138507843}
+{'accuracy_NORMAL': 0.4669509530067444, 'accuracy_AMD': 0.8948824405670166, 'accuracy_DME': 0.7831215858459473}
+====================================
+{'accuracy_NORMAL': 0.830082356929779, 'accuracy_AMD': 1.0, 'accuracy_DME': 0.999565601348877}
+{'accuracy_NORMAL': 0.6240310072898865, 'accuracy_AMD': 0.9108527302742004, 'accuracy_DME': 0.856589138507843}
+{'accuracy_NORMAL': 0.4669509530067444, 'accuracy_AMD': 0.8948824405670166, 'accuracy_DME': 0.7831215858459473}

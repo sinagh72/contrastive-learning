@@ -61,7 +61,7 @@ if __name__ == "__main__":
     load_dotenv(dotenv_path="../data/.env")
     style_path = os.getenv('STYLES_PATH')
     DATASET_PATH = os.getenv('KAGGLE_FULL_DATASET_PATH')
-    out_path = "../data/nst_full.hdf5"
+    out_path = "../data/nst_fasdasdull.hdf5"
 
     dataset = OCTDataset(data_root=DATASET_PATH,
                          img_type="RGB",
