@@ -37,9 +37,9 @@ if __name__ == "__main__":
     CV = 5,
     load_dotenv(dotenv_path="./data/.env")
     # Path to the folder where the datasets are
-    DATASET_PATH = os.getenv('KAGGLE_BALANCED_DATASET_PATH')
+    DATASET_PATH = os.getenv('KAGGLE_FULL_DATASET_PATH')
     # Path to the folder where the pretrained models are saved
-    CHECKPOINT_PATH = "./kaggle_saved_models_very_balanced_2cores_acc_new_version/SimCLR/"
+    CHECKPOINT_PATH = "./kaggle_saved_models_full_8cores_acc_new_version/SimCLR/"
     # Path to style transferred images
     # NST_PATH = "data/nst_balanced.hdf5"
     # In this notebook, we use data loaders with heavier computational processing. It is recommended to use as many
@@ -86,8 +86,8 @@ if __name__ == "__main__":
                                 hidden_dim=5 * 128,
                                 feature_dim=128,
                                 n_views=N_VIEWS,
-                                gradient_accumulation_steps=5,
-                                patience=5 * 5,
+                                gradient_accumulation_steps=1,
+                                patience=25,
                                 save_model_name="SimCLR",
                                 monitor="train_loss",
                                 # monitor="train_acc_mean_pos",
