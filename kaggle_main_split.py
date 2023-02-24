@@ -37,7 +37,7 @@ if __name__ == "__main__":
     CV = 5,
     load_dotenv(dotenv_path="./data/.env")
     # Path to the folder where the datasets are
-    DATASET_PATH = os.getenv('KAGGLE_FULL_DATASET_PATH')
+    DATASET_PATH = os.getenv('KAGGLE_BALANCED_DATASET_PATH')
     # Path to the folder where the pretrained models are saved
     CHECKPOINT_PATH = "trained_models/kaggle_saved_models_full_8cores_acc_new_version/SimCLR/"
     # Path to style transferred images

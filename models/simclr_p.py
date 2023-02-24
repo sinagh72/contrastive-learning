@@ -21,7 +21,11 @@ class SimCLRP(pl.LightningModule):
         self.metric = metric
         self.model = nn.Sequential(
             encoder,
-            nn.Linear(feature_dim, len(classes))  # Linear(hidden_dim, feature_dim)
+            nn.Linear(feature_dim, 10*feature_dim),
+            nn.ReLU(),
+            nn.Linear(10*feature_dim, 5*feature_dim),
+            nn.ReLU(),
+            nn.Linear(5*feature_dim, len(classes))  # Linear(feature dim, #classes)
         )
         counter = 0
         for param in self.model.parameters():
