@@ -1,0 +1,12 @@
+batch_size: 450
+feature_dim: 128
+gpus: 0
+gradient_accumulation_steps: 1
+hidden_dim: 640
+lr: 0.001
+max_epochs: 2000
+n_views: 2
+num_samples: 0
+temperature: 0.1
+warmup_epochs: 10
+weight_decay: 1.0e-06

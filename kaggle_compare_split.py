@@ -16,9 +16,9 @@ if __name__ == "__main__":
     N_VIEWS = 2
     load_dotenv(dotenv_path="./data/.env")
     # Path to the folder where the datasets are
-    DATASET_PATH = os.getenv('KAGGLE_FULL_DATASET_PATH')
+    DATASET_PATH = os.getenv('KAGGLE_BALANCED_DATASET_PATH')
     # Path to load simclr and to save resnet and linear models
-    CHECKPOINT_PATH = "trained_models/kaggle_saved_models_full_8cores_acc_new_version/SimCLR/"
+    CHECKPOINT_PATH = "trained_models/kaggle_balanced_8cores/SimCLR/"
     # Path to style transferred image
     # NST_PATH = "data/nst_balanced.hdf5"
 
@@ -44,7 +44,7 @@ if __name__ == "__main__":
 
     metric = "accuracy"
     log_name_suffix = "kaggle_new_test_8cores_full_with_dense"
-    batch_size = 128
+    batch_size = 400
 
     trained_dataset = OCTDataset(data_root=DATASET_PATH,
                                  transform=img_transforms,
@@ -97,7 +97,7 @@ if __name__ == "__main__":
                                                    max_epochs=100,
                                                    mode="min",
                                                    monitor="val_loss",
-                                                   patience=100,
+                                                   patience=10,
                                                    freeze_num=0,
                                                    # metric=metric,
                                                    save_model_name="SimCLRModel")
