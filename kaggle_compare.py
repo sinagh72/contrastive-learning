@@ -19,7 +19,7 @@ if __name__ == "__main__":
     # Path to the folder where the datasets are
     DATASET_PATH = os.getenv('KAGGLE_BALANCED_DATASET_PATH')
     # Path to load simclr and to save resnet and linear models
-    CHECKPOINT_PATH = "./kaggle_saved_models_very_balanced_2cores_acc/"
+    CHECKPOINT_PATH = "trained_models/kaggle_saved_models_very_balanced_2cores_acc/"
     # Path to style transferred image
     # NST_PATH = "data/nst_balanced.hdf5"
 
