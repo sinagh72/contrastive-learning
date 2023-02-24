@@ -23,7 +23,7 @@ class SimCLRP(pl.LightningModule):
             encoder,
             nn.Linear(feature_dim, len(classes))  # Linear(hidden_dim, feature_dim)
         )
-        counter = 60
+        counter = 0
         for param in self.model.parameters():
             if counter == freeze_num:
                 break
