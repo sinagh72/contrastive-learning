@@ -3,6 +3,7 @@ import torch
 import torchvision
 from torch import optim
 import torch.nn.functional as F
+from torchmetrics import F1Score
 from torchmetrics.classification import MulticlassAccuracy, BinaryAccuracy, MulticlassPrecision
 
 
@@ -30,6 +31,11 @@ class ResNet(pl.LightningModule):
             self.val_cm = MulticlassPrecision(num_classes=len(self.hparams.classes), average=None)
             self.test_cm = MulticlassPrecision(num_classes=len(self.hparams.classes), average=None)
 
+        task = "binary" if len(self.hparams.classes) == 2 else "multiclass"
+        self.train_f1 = F1Score(task=task, num_classes=len(self.hparams.classes))
+        self.val_f1 = F1Score(task=task, num_classes=len(self.hparams.classes))
+        self.test_f1 = F1Score(task=task, num_classes=len(self.hparams.classes))
+
     def configure_optimizers(self):
         optimizer = optim.AdamW(self.parameters(),
                                 lr=self.hparams.lr,
@@ -53,16 +59,22 @@ class ResNet(pl.LightningModule):
         preds = batch_parts["preds"]
         labels = batch_parts["labels"]
         self.train_cm.update(preds, labels)
+        self.train_f1.update(preds, labels)
         return batch_parts["loss"]
 
     def training_epoch_end(self, outputs):
         cm = self.train_cm.compute()
+        f1 = self.train_f1.compute()
+
         log = {}
         for c in self.hparams.classes:
             log[f"train_{self.hparams.metric}_" + c[0]] = cm[c[1]]
+
+        log["train_f1"] = f1
         log["train_loss"] = outputs[-1]
         self.log_dict(log, sync_dist=True, on_epoch=True, prog_bar=True)
         self.train_cm.reset()
+        self.train_f1.reset()
 
     def validation_step(self, batch, batch_idx):
         return self._calculate_loss(batch)
@@ -71,16 +83,20 @@ class ResNet(pl.LightningModule):
         preds = batch_parts["preds"]
         labels = batch_parts["labels"]
         self.val_cm.update(preds, labels)
+        self.val_f1.update(preds, labels)
         return batch_parts["loss"]
 
     def validation_epoch_end(self, outputs):
         cm = self.val_cm.compute()
+        f1 = self.val_f1.compute()
         log = {}
         for c in self.hparams.classes:
             log[f"val_{self.hparams.metric}_" + c[0]] = cm[c[1]]
+        log["val_f1"] = f1
         log["val_loss"] = outputs[-1]
         self.log_dict(log, sync_dist=True, on_epoch=True, prog_bar=True)
         self.val_cm.reset()
+        self.val_f1.reset()
 
     def test_step(self, batch, batch_idx):
         return self._calculate_loss(batch)
@@ -89,13 +105,17 @@ class ResNet(pl.LightningModule):
         preds = batch_parts["preds"]
         labels = batch_parts["labels"]
         self.test_cm.update(preds, labels)
+        self.test_f1.update(preds, labels)
         return batch_parts["loss"]
 
     def test_epoch_end(self, outputs):
         cm = self.test_cm.compute()
+        f1 = self.test_f1.compute()
         log = {}
         for c in self.hparams.classes:
             log[f"test_{self.hparams.metric}_" + c[0]] = cm[c[1]]
+        log["test_f1"] = f1
         log["test_loss"] = outputs[-1]
         self.log_dict(log, sync_dist=True, on_epoch=True, prog_bar=True)
         self.test_cm.reset()
+        self.test_f1.reset()
