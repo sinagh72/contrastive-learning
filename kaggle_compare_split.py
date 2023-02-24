@@ -16,9 +16,9 @@ if __name__ == "__main__":
     N_VIEWS = 2
     load_dotenv(dotenv_path="./data/.env")
     # Path to the folder where the datasets are
-    DATASET_PATH = os.getenv('KAGGLE_BALANCED_DATASET_PATH')
+    DATASET_PATH = os.getenv('KAGGLE_FULL_DATASET_PATH')
     # Path to load simclr and to save resnet and linear models
-    CHECKPOINT_PATH = "./kaggle_saved_models_very_balanced_2cores_acc_new_version"
+    CHECKPOINT_PATH = "./kaggle_saved_models_full_8cores_acc_new_version"
     # Path to style transferred image
     # NST_PATH = "data/nst_balanced.hdf5"
 
@@ -29,7 +29,7 @@ if __name__ == "__main__":
 
     # Ensure that all operations are deterministic on GPU (if used) for reproducibility
     torch.backends.cudnn.deterministic = True
-    torch.backends.cudnn.benchmark = False
+    torch.backends.cudnn.benchmark = True
 
     print("Number of workers:", NUM_WORKERS)
 
@@ -43,7 +43,7 @@ if __name__ == "__main__":
                ("DME", 2)]
 
     metric = "accuracy"
-    log_name_suffix = "kaggle_new_test"
+    log_name_suffix = "kaggle_new_test_8cores"
     batch_size = 128
 
     trained_dataset = OCTDataset(data_root=DATASET_PATH,
