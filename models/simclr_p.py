@@ -8,7 +8,6 @@ from torch.optim import Adam
 from torchmetrics import F1Score
 from torchmetrics.classification import MulticlassAccuracy, MulticlassPrecision
 
-
 class SimCLRP(pl.LightningModule):
     def __init__(self, encoder, freeze_num, feature_dim, classes, lr, weight_decay, metric="accuracy",
                  max_epochs=100):
@@ -48,7 +47,7 @@ class SimCLRP(pl.LightningModule):
             self.test_cm = MulticlassPrecision(num_classes=len(self.classes), average=None)
 
         task = "binary" if len(self.classes) == 2 else "multiclass"
-        self.train_f1 = F1Score(task=task, num_classes=len(self.classes))
+        self.train_f1 = F1Score(task="multiclass", num_classes=3)
         self.val_f1 = F1Score(task=task, num_classes=len(self.classes))
         self.test_f1 = F1Score(task=task, num_classes=len(self.classes))
 
