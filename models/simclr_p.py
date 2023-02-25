@@ -47,7 +47,7 @@ class SimCLRP(pl.LightningModule):
             self.test_cm = MulticlassPrecision(num_classes=len(self.classes), average=None)
 
         task = "binary" if len(self.classes) == 2 else "multiclass"
-        self.train_f1 = F1Score(task="multiclass", num_classes=3)
+        self.train_f1 = F1Score(task=task, num_classes=3)
         self.val_f1 = F1Score(task=task, num_classes=len(self.classes))
         self.test_f1 = F1Score(task=task, num_classes=len(self.classes))
 
@@ -76,7 +76,7 @@ class SimCLRP(pl.LightningModule):
         preds = batch_parts["preds"]
         labels = batch_parts["labels"]
         self.train_cm.update(preds, labels)
-        # self.train_f1.update(preds, labels)
+        self.train_f1.update(preds, labels)
         return batch_parts["loss"]
 
     def training_epoch_end(self, outputs):
@@ -91,7 +91,7 @@ class SimCLRP(pl.LightningModule):
         log["train_loss"] = outputs[-1]
         self.log_dict(log, sync_dist=True, on_epoch=True, prog_bar=True)
         self.train_cm.reset()
-        # self.train_f1.reset()
+        self.train_f1.reset()
 
     def validation_step(self, batch, batch_idx):
         return self._calculate_loss(batch)
@@ -100,20 +100,20 @@ class SimCLRP(pl.LightningModule):
         preds = batch_parts["preds"]
         labels = batch_parts["labels"]
         self.val_cm.update(preds, labels)
-        # self.val_f1.update(preds, labels)
+        self.val_f1.update(preds, labels)
         return batch_parts["loss"]
 
     def validation_epoch_end(self, outputs):
         cm = self.val_cm.compute()
-        # f1 = self.val_f1.compute()
+        f1 = self.val_f1.compute()
         log = {}
         for c in self.classes:
             log[f"val_{self.metric}_" + c[0]] = cm[c[1]]
-        # log["val_f1"] = f1
+        log["val_f1"] = f1
         log["val_loss"] = outputs[-1]
         self.log_dict(log, sync_dist=True, on_epoch=True, prog_bar=True)
         self.val_cm.reset()
-        # self.val_f1.reset()
+        self.val_f1.reset()
 
     def test_step(self, batch, batch_idx):
         return self._calculate_loss(batch)
@@ -122,17 +122,17 @@ class SimCLRP(pl.LightningModule):
         preds = batch_parts["preds"]
         labels = batch_parts["labels"]
         self.test_cm.update(preds, labels)
-        # self.test_f1.update(preds, labels)
+        self.test_f1.update(preds, labels)
         return batch_parts["loss"]
 
     def test_epoch_end(self, outputs):
         cm = self.test_cm.compute()
-        # f1 = self.test_f1.compute()
+        f1 = self.test_f1.compute()
         log = {}
         for c in self.classes:
             log[f"test_{self.metric}_" + c[0]] = cm[c[1]]
-        # log["test_f1"] = f1
+        log["test_f1"] = f1
         log["test_loss"] = outputs[-1]
         self.log_dict(log, sync_dist=True, on_epoch=True, prog_bar=True)
         self.test_cm.reset()
-        # self.test_f1.reset()
+        self.test_f1.reset()

@@ -1,6 +1,7 @@
-matplotlib
+python 3.8
+matplotlib==3.7.0
 seaborn
-pytorch-lightning
+pytorch-lightning==1.8
 mmcv
 natsort
 h5py
