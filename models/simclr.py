@@ -13,7 +13,7 @@ from torch.optim.adam import Adam
 
 class SimCLR(pl.LightningModule):
 
-    def __init__(self, gpus: int = 0, batch_size: int = 0, num_samples: int = 0, hidden_dim: int = 2048,
+    def __init__(self, gpus: int = 0, batch_size: int = 450, num_samples: int = 0, hidden_dim: int = 2048,
                  feature_dim: int = 128, lr: float = 1e-3, temperature: float = 0.1, warmup_epochs: int = 10,
                  weight_decay: float = 1e-6, max_epochs: int = 500, n_views: int = 2,
                  gradient_accumulation_steps: int = 5):
