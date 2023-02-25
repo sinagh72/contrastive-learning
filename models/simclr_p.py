@@ -48,9 +48,9 @@ class SimCLRP(pl.LightningModule):
             self.test_cm = MulticlassPrecision(num_classes=len(self.classes), average=None)
 
         task = "binary" if len(self.classes) == 2 else "multiclass"
-        # self.train_f1 = F1Score(task=task, num_classes=len(self.classes))
-        # self.val_f1 = F1Score(task=task, num_classes=len(self.classes))
-        # self.test_f1 = F1Score(task=task, num_classes=len(self.classes))
+        self.train_f1 = F1Score(task=task, num_classes=len(self.classes))
+        self.val_f1 = F1Score(task=task, num_classes=len(self.classes))
+        self.test_f1 = F1Score(task=task, num_classes=len(self.classes))
 
     def forward(self, x):
         return self.model(x)
