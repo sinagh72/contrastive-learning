@@ -1,3 +1,5 @@
+import math
+
 from pl_bolts.optimizers.lr_scheduler import LinearWarmupCosineAnnealingLR
 import torch
 import torch.nn as nn
@@ -19,13 +21,13 @@ class SimCLRP(pl.LightningModule):
         self.lr = lr
         self.weight_decay = weight_decay
         self.metric = metric
-        total_len = encoder.parameters().size()
+        freeze_count = math.floor(sum(1 for _ in encoder.parameters())*freeze_p)
         counter = 0
         for param in encoder.parameters():
-            if counter == freeze_p:
+            if freeze_count == counter:
                 break
             param.requires_grad = False
-            counter -= 1
+            counter += 1
 
         self.model = nn.Sequential(
             encoder,
