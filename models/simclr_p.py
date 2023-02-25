@@ -9,7 +9,7 @@ from torchmetrics import F1Score
 from torchmetrics.classification import MulticlassAccuracy, MulticlassPrecision
 
 class SimCLRP(pl.LightningModule):
-    def __init__(self, encoder, freeze_num, feature_dim, classes, lr, weight_decay, metric="accuracy",
+    def __init__(self, encoder, freeze_p, feature_dim, classes, lr, weight_decay, metric="accuracy",
                  max_epochs=100):
         super().__init__()
         # self.model = encoder
@@ -19,6 +19,14 @@ class SimCLRP(pl.LightningModule):
         self.lr = lr
         self.weight_decay = weight_decay
         self.metric = metric
+        total_len = encoder.parameters().size()
+        counter = 0
+        for param in encoder.parameters():
+            if counter == freeze_p:
+                break
+            param.requires_grad = False
+            counter -= 1
+
         self.model = nn.Sequential(
             encoder,
             nn.Linear(feature_dim, 10*feature_dim),
@@ -29,12 +37,7 @@ class SimCLRP(pl.LightningModule):
             nn.LeakyReLU(),
             nn.Linear(5*feature_dim, len(classes))  # Linear(feature dim, #classes)
         )
-        counter = 0
-        for param in self.model.parameters():
-            if counter == freeze_num:
-                break
-            param.requires_grad = False
-            counter -= 1
+
 
         if self.metric == "accuracy":
             self.train_cm = MulticlassAccuracy(num_classes=len(self.classes), average=None)
