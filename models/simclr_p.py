@@ -71,6 +71,8 @@ class SimCLRP(pl.LightningModule):
         loss = F.cross_entropy(preds, labels)
         return {"loss": loss, "preds": torch.flatten(preds.argmax(dim=-1)), "labels": torch.flatten(labels)}
 
+    def training_step(self, batch, batch_idx):
+        return self._calculate_loss(batch)
     def training_step_end(self, batch_parts):
         preds = batch_parts["preds"]
         labels = batch_parts["labels"]
