@@ -43,8 +43,8 @@ if __name__ == "__main__":
                ("DME", 2)]
 
     metric = "accuracy"
-    log_name_suffix = "kaggle_new_test_8cores_full_with_dense"
-    batch_size = 400
+    log_name_suffix = "kaggle_balanced_8cores_with_dense_train_loss"
+    batch_size = 128
 
     trained_dataset = OCTDataset(data_root=DATASET_PATH,
                                  transform=img_transforms,
@@ -98,9 +98,10 @@ if __name__ == "__main__":
                                                    mode="min",
                                                    monitor="val_loss",
                                                    patience=10,
-                                                   freeze_num=0,
+                                                   freeze_p=0.0,
+                                                   encoder_path="SimCLR_train_loss",
                                                    # metric=metric,
-                                                   save_model_name="SimCLRModel")
+                                                   save_model_name="SimCLR_p_train_loss")
 
     file_mode = "a" if os.path.exists(f'log/{log_name_suffix}_{metric}_simclrp_{batch_size}.txt') else "w"
     with open(f'log/{log_name_suffix}_{metric}_simclrp_{batch_size}.txt', file_mode) as f:
@@ -117,16 +118,16 @@ if __name__ == "__main__":
     resnet_model, resnet_result = train_resnet(devices=devices,
                                                strategy=strategy,
                                                batch_size=batch_size,
-                                               train_data=train_dataset,
-                                               val_data=val_dataset,
-                                               test_data=test_dataset,
-                                               lr=1e-3,
-                                               weight_decay=2e-4,
+                                             train_data=train_dataset,
+                                              val_data=val_dataset,
+                                              test_data=test_dataset,
+                                              lr=1e-3,
+                                              weight_decay=2e-4,
                                                checkpoint_path=CHECKPOINT_PATH + "/ResNet",
-                                               max_epochs=100,
+                                              max_epochs=100,
                                                classes=classes,
                                                # metric=metric,
-                                               save_model_name="ResNet")
+                                              save_model_name="ResNet")
 
     file_mode = "a" if os.path.exists(f'log/{log_name_suffix}_{metric}_resnet_{batch_size}.txt') else "w"
     with open(f'log/{log_name_suffix}_{metric}_resnet_{batch_size}.txt', file_mode) as f:

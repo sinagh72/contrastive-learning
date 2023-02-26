@@ -1,0 +1,32 @@
+====================================
+{'accuracy_NORMAL': 0.7610921263694763, 'accuracy_AMD': 0.956393837928772, 'accuracy_DME': 0.997563362121582}
+{'accuracy_NORMAL': 0.8461537957191467, 'accuracy_AMD': 0.8410853147506714, 'accuracy_DME': 0.8837209343910217}
+{'accuracy_NORMAL': 0.673774003982544, 'accuracy_AMD': 0.8204420804977417, 'accuracy_DME': 0.8928247094154358}
+====================================
+{'accuracy_NORMAL': 0.7610921263694763, 'accuracy_AMD': 0.956393837928772, 'accuracy_DME': 0.997563362121582}
+{'accuracy_NORMAL': 0.8461537957191467, 'accuracy_AMD': 0.8410853147506714, 'accuracy_DME': 0.8837209343910217}
+{'accuracy_NORMAL': 0.673774003982544, 'accuracy_AMD': 0.8204420804977417, 'accuracy_DME': 0.8928247094154358}
+====================================
+{'accuracy_NORMAL': 0.7610921263694763, 'accuracy_AMD': 0.956393837928772, 'accuracy_DME': 0.997563362121582}
+{'accuracy_NORMAL': 0.8461537957191467, 'accuracy_AMD': 0.8410853147506714, 'accuracy_DME': 0.8837209343910217}
+{'accuracy_NORMAL': 0.673774003982544, 'accuracy_AMD': 0.8204420804977417, 'accuracy_DME': 0.8928247094154358}
+====================================
+{'accuracy_NORMAL': 0.7610921263694763, 'accuracy_AMD': 0.956393837928772, 'accuracy_DME': 0.997563362121582}
+{'accuracy_NORMAL': 0.8461537957191467, 'accuracy_AMD': 0.8410853147506714, 'accuracy_DME': 0.8837209343910217}
+{'accuracy_NORMAL': 0.673774003982544, 'accuracy_AMD': 0.8204420804977417, 'accuracy_DME': 0.8928247094154358}
+====================================
+{'accuracy_NORMAL': 0.7610921263694763, 'accuracy_AMD': 0.956393837928772, 'accuracy_DME': 0.997563362121582}
+{'accuracy_NORMAL': 0.8461537957191467, 'accuracy_AMD': 0.8410853147506714, 'accuracy_DME': 0.8837209343910217}
+{'accuracy_NORMAL': 0.673774003982544, 'accuracy_AMD': 0.8204420804977417, 'accuracy_DME': 0.8928247094154358}
+====================================
+{'accuracy_NORMAL': 0.7610921263694763, 'accuracy_AMD': 0.956393837928772, 'accuracy_DME': 0.997563362121582}
+{'accuracy_NORMAL': 0.8461537957191467, 'accuracy_AMD': 0.8410853147506714, 'accuracy_DME': 0.8837209343910217}
+{'accuracy_NORMAL': 0.673774003982544, 'accuracy_AMD': 0.8204420804977417, 'accuracy_DME': 0.8928247094154358}
+====================================
+{'accuracy_NORMAL': 0.7610921263694763, 'accuracy_AMD': 0.956393837928772, 'accuracy_DME': 0.997563362121582}
+{'accuracy_NORMAL': 0.8461537957191467, 'accuracy_AMD': 0.8410853147506714, 'accuracy_DME': 0.8837209343910217}
+{'accuracy_NORMAL': 0.673774003982544, 'accuracy_AMD': 0.8204420804977417, 'accuracy_DME': 0.8928247094154358}
+====================================
+{'accuracy_NORMAL': 0.7610921263694763, 'accuracy_AMD': 0.956393837928772, 'accuracy_DME': 0.997563362121582}
+{'accuracy_NORMAL': 0.8461537957191467, 'accuracy_AMD': 0.8410853147506714, 'accuracy_DME': 0.8837209343910217}
+{'accuracy_NORMAL': 0.673774003982544, 'accuracy_AMD': 0.8204420804977417, 'accuracy_DME': 0.8928247094154358}

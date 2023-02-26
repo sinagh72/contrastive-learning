@@ -39,7 +39,7 @@ if __name__ == "__main__":
     # Path to the folder where the datasets are
     DATASET_PATH = os.getenv('KAGGLE_BALANCED_DATASET_PATH')
     # Path to the folder where the pretrained models are saved
-    CHECKPOINT_PATH = "trained_models/kaggle_balanced_8cores/SimCLR/"
+    CHECKPOINT_PATH = "trained_models/kaggle_balanced_8cores/SimCLR_train_loss/"
     # Path to style transferred images
     # NST_PATH = "data/nst_balanced.hdf5"
     # In this notebook, we use data loaders with heavier computational processing. It is recommended to use as many
@@ -49,6 +49,7 @@ if __name__ == "__main__":
     # Ensure that all operations are deterministic on GPU (if used) for reproducibility
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = True
+
 
     device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
     print("Device:", device)
@@ -89,7 +90,7 @@ if __name__ == "__main__":
                                 gradient_accumulation_steps=1,
                                 patience=15,
                                 save_model_name="SimCLR",
-                                monitor="train_acc_top10",
+                                monitor="train_loss",
                                 # monitor="train_acc_mean_pos",
-                                mode="max"
+                                mode="min"
                                 )

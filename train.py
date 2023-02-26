@@ -202,6 +202,7 @@ def train_resnet(batch_size, train_data, val_data, test_data, checkpoint_path,
 
 def train_simclr_p(batch_size, train_dataset, val_dataset, test_dataset, checkpoint_path,
                    save_model_name=None, devices=1, strategy=None, mode="min", monitor="val_loss", patience=10,
+                   encoder_path="SimCLR",
                    **kwargs):
     pl.seed_everything(42)  # To be reproducable
     metric = "accuracy"
@@ -223,7 +224,7 @@ def train_simclr_p(batch_size, train_dataset, val_dataset, test_dataset, checkpo
                          sync_batchnorm=True)
     trainer.logger._default_hp_metric = None
 
-    simclr_model = SimCLR.load_from_checkpoint(os.path.join(checkpoint_path, "SimCLR", "SimCLR", "SimCLR.ckpt"))
+    simclr_model = SimCLR.load_from_checkpoint(os.path.join(checkpoint_path, encoder_path, "SimCLR", "SimCLR.ckpt"))
 
     # Data loaders
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True,
