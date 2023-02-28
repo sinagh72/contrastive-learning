@@ -102,7 +102,7 @@ def main():
     vgg.eval()
 
     decoder.load_state_dict(torch.load('models/decoder.pth'))
-    vgg.load_state_dict(torch.load('models/vgg_normalised.pth'))
+    vgg.load_state_dict(torch.load('models/vgg_normalised.t7'))
     vgg = nn.Sequential(*list(vgg.children())[:31])
 
     vgg.to(device)

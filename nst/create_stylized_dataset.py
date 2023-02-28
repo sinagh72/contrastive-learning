@@ -12,31 +12,33 @@ from stylize_hdf5_multiple import stylize_hdf5_multiple, stylize_dataset_multipl
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
-parser = argparse.ArgumentParser()
-parser.add_argument('--content-path', type=str,
-                    help='path to the content images in hdf5 format')
-parser.add_argument('--style-dir', type=str,
-                    help='directory path to a batch of style images')
-parser.add_argument('--out-path', type=str,
-                    help='path to save the stylized dataset in hdf5 format')
-parser.add_argument('--alpha', type=float, default=1.0,
-                    help='the weight that controls the degree of \
-                          stylization, should be between 0 and 1')
-parser.add_argument('--content-size', type=int, default=1024,
-                    help='new (minimum) size for the content image, \
-                    keeping the original size if set to 0')
-parser.add_argument('--style-size', type=int, default=256,
-                    help='new (minimum) size for the style image, \
-                    keeping the original size if set to 0')
-parser.add_argument('--save-size', type=int, default=256,
-                    help='output size for the stylized image')
+#parser = argparse.ArgumentParser()
+#parser.add_argument('--content-path', type=str,
+#                    help='path to the content images in hdf5 format')
+#parser.add_argument('--style-dir', type=str,
+#                    help='directory path to a batch of style images')
+#parser.add_argument('--out-path', type=str,
+#                    help='path to save the stylized dataset in hdf5 format')
+#parser.add_argument('--alpha', type=float, default=1.0,
+#                    help='the weight that controls the degree of \
+#                          stylization, should be between 0 and 1')
+#parser.add_argument('--content-size', type=int, default=1024,
+#                    help='new (minimum) size for the content image, \
+#                    keeping the original size if set to 0')
+#parser.add_argument('--style-size', type=int, default=256,
+#                    help='new (minimum) size for the style image, \
+#                    keeping the original size if set to 0')
+#parser.add_argument('--save-size', type=int, default=256,
+#                    help='output size for the stylized image')
 # to generate multiple stylized images per each content image, uncomment below
 # parser.add_argument('--num-styles', type=int, default=1, help='number of styles to \
 #                         create for each image (default: 1)')
 
+import sys
+sys.path.insert(0, '~/Desktop/projects/contrastive-learning/nst')
 if __name__ == "__main__":
     os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-    os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+    os.environ["CUDA_VISIBLE_DEVICES"] = "8"
 
     # args = parser.parse_args()
     alpha = 0.15
@@ -61,7 +63,7 @@ if __name__ == "__main__":
     load_dotenv(dotenv_path="../data/.env")
     style_path = os.getenv('STYLES_PATH')
     DATASET_PATH = os.getenv('KAGGLE_FULL_DATASET_PATH')
-    out_path = "../data/nst_fasdasdull.hdf5"
+    out_path = "../data/nst_full.hdf5"
 
     dataset = OCTDataset(data_root=DATASET_PATH,
                          img_type="RGB",

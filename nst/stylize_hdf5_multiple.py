@@ -1,12 +1,13 @@
 # https://github.com/bethgelab/stylize-datasets
 import os
 import sys
+from functools import partial
 
 from matplotlib import pyplot as plt
 from torchvision.transforms import transforms
 from tqdm import tqdm
 
-from OCT_dataset import representation_transform
+from transformation import representation_transform
 
 sys.path.append(os.path.dirname(__file__))
 import argparse
@@ -21,7 +22,7 @@ import torchvision.transforms
 from function import adaptive_instance_normalization
 import net
 import cv2
-
+import pickle
 
 def input_transform(size, crop):
     transform_list = []
@@ -47,13 +48,13 @@ def stylize_dataset_multiple(dataset, style_dir, out_path, alpha=1., content_siz
                              style_size=256, save_size=256, style_views=10, save_sample=False):
     # collect style files
     style_dir = Path(style_dir)
-    style_dir = style_dir.resolve()
+    print(style_dir)
     extensions = ['png', 'jpeg', 'jpg']
     styles = []
     for ext in extensions:
         styles += list(style_dir.rglob('*.' + ext))
 
-    assert len(styles) > 0, 'No images with specified extensions found in style directory' + style_dir
+    assert len(styles) > 0, 'No images with specified extensions found in style directory'
     styles = sorted(styles)
     print('Found %d style images in %s' % (len(styles), style_dir))
 
@@ -66,7 +67,7 @@ def stylize_dataset_multiple(dataset, style_dir, out_path, alpha=1., content_siz
     vgg.eval()
 
     decoder.load_state_dict(torch.load('models/decoder.pth'))
-    vgg.load_state_dict(torch.load('models/vgg_normalised.pth'))
+    vgg.load_state_dict(torch.load('models/vgg_normalised.t7'))
     vgg = nn.Sequential(*list(vgg.children())[:31])
 
     vgg.to(device)
@@ -170,7 +171,7 @@ def stylize_hdf5_multiple(contents, style_dir, out_path, ids, fnames, labels, al
     vgg.eval()
 
     decoder.load_state_dict(torch.load('models/decoder.pth'))
-    vgg.load_state_dict(torch.load('models/vgg_normalised.pth'))
+    vgg.load_state_dict(torch.load('models/vgg_normalised.t7'))
     vgg = nn.Sequential(*list(vgg.children())[:31])
 
     vgg.to(device)
