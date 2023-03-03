@@ -34,7 +34,7 @@ def train_simclr(batch_size, max_epochs=500, train_data=None, val_data=None, che
                          callbacks=[
                              accumulator,
                              early_stopping,
-                             ModelCheckpoint(dirpath=model_path, filename=save_model_name,
+                             ModelCheckpoint(dirpath=model_path, filename=save_model_name, save_top_k=1,
                                              save_weights_only=True, mode=mode, monitor=monitor),
                              LearningRateMonitor('epoch')],
                          # logger=logger,
@@ -60,9 +60,9 @@ def train_simclr(batch_size, max_epochs=500, train_data=None, val_data=None, che
         else:
             trainer.fit(model, train_loader)
         # Load best checkpoint after training
-        model = SimCLR.load_from_checkpoint(trainer.checkpoint_callback.best_model_path)
-
-    return model
+    #     model = SimCLR.load_from_checkpoint(trainer.checkpoint_callback.best_model_path)
+    #
+    # return model
 
 
 def train_linear_model(batch_size, train_feats_data, val_feats_data, test_feats_data, checkpoint_path,

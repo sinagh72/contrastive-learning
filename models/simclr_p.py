@@ -7,8 +7,9 @@ import pytorch_lightning as pl
 from torch import optim
 from torch.nn import functional as F
 from torch.optim import Adam
-from torchmetrics import F1Score
+from torchmetrics import F1Score, AUROC
 from torchmetrics.classification import MulticlassAccuracy, MulticlassPrecision
+
 
 class SimCLRP(pl.LightningModule):
     def __init__(self, encoder, freeze_p, feature_dim, classes, lr, weight_decay, metric="accuracy",
@@ -21,7 +22,7 @@ class SimCLRP(pl.LightningModule):
         self.lr = lr
         self.weight_decay = weight_decay
         self.metric = metric
-        freeze_count = math.floor(sum(1 for _ in encoder.parameters())*freeze_p)
+        freeze_count = math.floor(sum(1 for _ in encoder.parameters()) * freeze_p)
         counter = 0
         for param in encoder.parameters():
             if freeze_count == counter:
@@ -31,30 +32,39 @@ class SimCLRP(pl.LightningModule):
 
         self.model = nn.Sequential(
             encoder,
-            nn.Linear(feature_dim, 10*feature_dim),
+            nn.Linear(feature_dim, 10 * feature_dim),
             nn.Dropout(),
             nn.LeakyReLU(),
-            nn.Linear(10*feature_dim, 5*feature_dim),
+            nn.Linear(10 * feature_dim, 5 * feature_dim),
             nn.Dropout(),
             nn.LeakyReLU(),
-            nn.Linear(5*feature_dim, len(classes))  # Linear(feature dim, #classes)
+            nn.Linear(5 * feature_dim, len(classes))  # Linear(feature dim, #classes)
         )
 
+        self.train_ac = MulticlassAccuracy(num_classes=len(self.classes), average=None)
+        self.val_ac = MulticlassAccuracy(num_classes=len(self.classes), average=None)
+        self.test_ac = MulticlassAccuracy(num_classes=len(self.classes), average=None)
 
-        if self.metric == "accuracy":
-            self.train_cm = MulticlassAccuracy(num_classes=len(self.classes), average=None)
-            self.val_cm = MulticlassAccuracy(num_classes=len(self.classes), average=None)
-            self.test_cm = MulticlassAccuracy(num_classes=len(self.classes), average=None)
+        self.train_p = MulticlassPrecision(num_classes=len(self.classes), average=None)
+        self.val_p = MulticlassPrecision(num_classes=len(self.classes), average=None)
+        self.test_p = MulticlassPrecision(num_classes=len(self.classes), average=None)
 
-        elif self.metric == "precision":
-            self.train_cm = MulticlassPrecision(num_classes=len(self.classes), average=None)
-            self.val_cm = MulticlassPrecision(num_classes=len(self.classes), average=None)
-            self.test_cm = MulticlassPrecision(num_classes=len(self.classes), average=None)
+        self.train_p = MulticlassPrecision(num_classes=len(self.classes), average=None)
+        self.val_p = MulticlassPrecision(num_classes=len(self.classes), average=None)
+        self.test_p = MulticlassPrecision(num_classes=len(self.classes), average=None)
 
         task = "binary" if len(self.classes) == 2 else "multiclass"
         self.train_f1 = F1Score(task=task, num_classes=3)
         self.val_f1 = F1Score(task=task, num_classes=len(self.classes))
         self.test_f1 = F1Score(task=task, num_classes=len(self.classes))
+
+        self.train_auc = AUROC(task=task, num_classes=len(self.classes))
+        self.val_auc = AUROC(task=task, num_classes=len(self.classes))
+        self.test_auc = AUROC(task=task, num_classes=len(self.classes))
+
+        self.metrics = {"train": [self.train_ac, self.train_p, self.train_f1, self.train_auc],
+                        "val": [self.val_ac, self.val_p, self.val_f1, self.val_auc],
+                        "test": [self.test_ac, self.test_p, self.test_f1, self.test_auc]}
 
     def forward(self, x):
         return self.model(x)
@@ -77,26 +87,31 @@ class SimCLRP(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):
         return self._calculate_loss(batch)
+
     def training_step_end(self, batch_parts):
         preds = batch_parts["preds"]
         labels = batch_parts["labels"]
-        self.train_cm.update(preds, labels)
-        self.train_f1.update(preds, labels)
+        for metric in self.metrics["train"]:
+            metric.update(preds, labels)
         return batch_parts["loss"]
 
     def training_epoch_end(self, outputs):
-        cm = self.train_cm.compute()
-        # f1 = self.train_f1.compute()
+        cm = self.train_ac.compute()
+        f1 = self.train_f1.compute()
+        precision = self.train_p.compute()
+        auc = self.train_auc.compute()
 
         log = {}
-        for c in self.classes:
-            log[f"train_{self.metric}_" + c[0]] = cm[c[1]]
+        for c in self.hparams.classes:
+            log[f"train_accuracy_" + c[0]] = cm[c[1]]
+            log[f"train_precision_" + c[0]] = precision[c[1]]
 
-        # log["train_f1"] = f1
+        log["train_f1"] = f1
+        log["train_auc"] = auc
         log["train_loss"] = outputs[-1]
         self.log_dict(log, sync_dist=True, on_epoch=True, prog_bar=True)
-        self.train_cm.reset()
-        self.train_f1.reset()
+        for metric in self.metrics["train"]:
+            metric.reset()
 
     def validation_step(self, batch, batch_idx):
         return self._calculate_loss(batch)
@@ -104,21 +119,27 @@ class SimCLRP(pl.LightningModule):
     def validation_step_end(self, batch_parts):
         preds = batch_parts["preds"]
         labels = batch_parts["labels"]
-        self.val_cm.update(preds, labels)
-        self.val_f1.update(preds, labels)
+        for metric in self.metrics["val"]:
+            metric.update(preds, labels)
         return batch_parts["loss"]
 
     def validation_epoch_end(self, outputs):
-        cm = self.val_cm.compute()
+        cm = self.val_ac.compute()
         f1 = self.val_f1.compute()
+        precision = self.val_p.compute()
+        auc = self.val_auc.compute()
+
         log = {}
-        for c in self.classes:
-            log[f"val_{self.metric}_" + c[0]] = cm[c[1]]
+        for c in self.hparams.classes:
+            log[f"val_accuracy_" + c[0]] = cm[c[1]]
+            log[f"val_precision_" + c[0]] = precision[c[1]]
+
         log["val_f1"] = f1
+        log["val_auc"] = auc
         log["val_loss"] = outputs[-1]
         self.log_dict(log, sync_dist=True, on_epoch=True, prog_bar=True)
-        self.val_cm.reset()
-        self.val_f1.reset()
+        for metric in self.metrics["val"]:
+            metric.reset()
 
     def test_step(self, batch, batch_idx):
         return self._calculate_loss(batch)
@@ -126,18 +147,24 @@ class SimCLRP(pl.LightningModule):
     def test_step_end(self, batch_parts):
         preds = batch_parts["preds"]
         labels = batch_parts["labels"]
-        self.test_cm.update(preds, labels)
-        self.test_f1.update(preds, labels)
+        for metric in self.metrics["test"]:
+            metric.update(preds, labels)
         return batch_parts["loss"]
 
     def test_epoch_end(self, outputs):
-        cm = self.test_cm.compute()
+        cm = self.test_ac.compute()
         f1 = self.test_f1.compute()
+        precision = self.test_p.compute()
+        auc = self.test_auc.compute()
+
         log = {}
-        for c in self.classes:
-            log[f"test_{self.metric}_" + c[0]] = cm[c[1]]
+        for c in self.hparams.classes:
+            log[f"test_accuracy_" + c[0]] = cm[c[1]]
+            log[f"test_precision_" + c[0]] = precision[c[1]]
+
         log["test_f1"] = f1
+        log["test_auc"] = auc
         log["test_loss"] = outputs[-1]
         self.log_dict(log, sync_dist=True, on_epoch=True, prog_bar=True)
-        self.test_cm.reset()
-        self.test_f1.reset()
+        for metric in self.metrics["test"]:
+            metric.reset()

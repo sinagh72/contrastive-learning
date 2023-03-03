@@ -224,15 +224,18 @@ def get_kaggle_imgs(data_root: str, **kwargs):
             num_visits = [len(n) for n in img_dict.values()]
             total_imgs = sum(num_visits)
             val_num = math.floor(total_imgs * kwargs["val_split"])
-            for solution in sb.solutions(num_visits, val_num):
-                # `solution` contains indices of elements in `nums`
-                subset = [i for i in solution]
-                break
-            keys = list(img_dict.keys())
+            if val_num != 0:
+                for solution in sb.solutions(num_visits, val_num):
+                    # `solution` contains indices of elements in `nums`
+                    subset = [i for i in solution]
+                    break
+                keys = list(img_dict.keys())
+                for idx in subset:
+                    if kwargs["mode"] == "val":
+                        img_paths += [img_file_path + "/" + keys[idx] + count for count in img_dict[keys[idx]]]
+            else:
+                subset = []
             counter = -1
-            for idx in subset:
-                if kwargs["mode"] == "val":
-                    img_paths += [img_file_path + "/" + keys[idx] + count for count in img_dict[keys[idx]]]
             for key, val in img_dict.items():
                 counter += 1
                 if counter in subset:

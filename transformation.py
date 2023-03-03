@@ -26,20 +26,20 @@ def train_aug(img):
     #     transforms.Normalize((0.5,), (0.5,))
     # ])
     transform = transforms.Compose([transforms.Resize((128, 128), InterpolationMode.BICUBIC),
-                                    transforms.RandomHorizontalFlip(p=0.5),
+                                    transforms.RandomHorizontalFlip(p=0.25),
                                     transforms.RandomRotation(degrees=45),
-                                    transforms.RandomPerspective(distortion_scale=0.5, p=0.5),
-                                    # transforms.RandomResizedCrop(size=128, scale=(0.25, 0.75),
-                                    #                              interpolation=InterpolationMode.BICUBIC),
+                                    transforms.RandomPerspective(distortion_scale=0.5, p=0.25),
                                     transforms.RandomApply([
-                                        transforms.ColorJitter(brightness=0.5,
-                                                               contrast=0.5,
-                                                               saturation=0.5,
+                                        transforms.ColorJitter(brightness=0.2,
+                                                               contrast=0.2,
+                                                               saturation=0.2,
                                                                hue=0.1),
                                         transforms.GaussianBlur(kernel_size=3),
-                                    ], p=0.8),
-                                    transforms.RandomGrayscale(p=0.2),
-
+                                        transforms.RandomAffine(degrees=(30, 70), translate=(0.1, 0.3),
+                                                                scale=(0.5, 0.75)),
+                                        transforms.ElasticTransform(alpha=(50, 250), sigma=(5, 10))
+                                    ], p=0.25),
+                                    transforms.RandomGrayscale(p=0.25),
                                     transforms.Grayscale(3),
                                     transforms.ToTensor(),
                                     transforms.Normalize((0.5,), (0.5,)),

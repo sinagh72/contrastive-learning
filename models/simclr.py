@@ -99,8 +99,8 @@ class SimCLR(pl.LightningModule):
         # Logging ranking metrics
         log_dict = {mode + '_loss': nll,
                     mode + '_acc_top1': (sim_argsort == 0).float().mean(),
-                    mode + '_acc_top10': (sim_argsort < 10).float().mean(),
-                    mode + '_acc_mean_pos': sim_argsort.float().mean()
+                    mode + '_acc_top25': (sim_argsort < 25).float().mean(),
+                    mode + '_acc_mean_pos': 1+sim_argsort.float().mean()
                     }
 
         # self.log_dict(log_dict, sync_dist=True)
