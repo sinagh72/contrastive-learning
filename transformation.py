@@ -37,7 +37,7 @@ def train_aug(img):
                                         transforms.GaussianBlur(kernel_size=3),
                                         transforms.RandomAffine(degrees=(30, 70), translate=(0.1, 0.3),
                                                                 scale=(0.5, 0.75)),
-                                        transforms.ElasticTransform(alpha=(50, 250), sigma=(5, 10))
+                                        transforms.ElasticTransform(alpha=(50.0, 250.0), sigma=(5.0, 10.0))
                                     ], p=0.25),
                                     transforms.RandomGrayscale(p=0.25),
                                     transforms.Grayscale(3),
