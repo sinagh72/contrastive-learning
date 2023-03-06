@@ -43,6 +43,10 @@ def style_transfer(vgg, decoder, content, style, alpha=1.0):
     feat = feat * alpha + content_f * (1 - alpha)
     return decoder(feat)
 
+# from functools import partial
+# import pickle
+# pickle.load = partial(pickle.load, encoding="latin1")
+# pickle.Unpickler = partial(pickle.Unpickler, encoding="latin1")
 
 def stylize_dataset_multiple(dataset, style_dir, out_path, alpha=1., content_size=1024,
                              style_size=256, save_size=256, style_views=10, save_sample=False):
@@ -65,6 +69,8 @@ def stylize_dataset_multiple(dataset, style_dir, out_path, alpha=1., content_siz
 
     decoder.eval()
     vgg.eval()
+
+    # model = torch.load('./models/decoder.pth', map_location=lambda storage, loc: storage, pickle_module=pickle)
 
     decoder.load_state_dict(torch.load('models/decoder.pth'))
     vgg.load_state_dict(torch.load('models/vgg_normalised.t7'))

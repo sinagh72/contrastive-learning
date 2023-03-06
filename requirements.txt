@@ -1,4 +1,5 @@
-python 3.8
+python 3.9
+conda install pytorch torchvision torchaudio pytorch-cuda=11.7 -c pytorch -c nvidia
 matplotlib==3.7.0
 seaborn
 pytorch-lightning==1.8
@@ -9,3 +10,5 @@ python-dotenv
 lightning-bolts
 subsetsum
 tables
+cchardet
+chardet
