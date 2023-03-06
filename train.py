@@ -1,6 +1,6 @@
 import os
 from copy import deepcopy
-
+from pytorch_lightning import loggers as pl_loggers
 import torch
 
 from models.simclr_p import SimCLRP
@@ -154,6 +154,7 @@ def train_resnet(batch_size, train_data, val_data, test_data, checkpoint_path,
 
     model_path = os.path.join(checkpoint_path, save_model_name)
     early_stopping = EarlyStopping(monitor="val_loss", patience=10, verbose=False, mode="min")
+    tb_logger = pl_loggers.CSVLogger(save_dir=os.path.join(model_path, "log/"))
     trainer = pl.Trainer(default_root_dir=model_path,
                          accelerator="gpu",
                          devices=devices,
@@ -165,7 +166,8 @@ def train_resnet(batch_size, train_data, val_data, test_data, checkpoint_path,
                                         , monitor="val_loss", save_top_k=1),
                                     LearningRateMonitor("epoch")],
                          log_every_n_steps=1,
-                         sync_batchnorm=True)
+                         sync_batchnorm=True,
+                         logger=tb_logger)
     trainer.logger._default_hp_metric = None
 
     # Data loaders
@@ -214,6 +216,7 @@ def train_simclr_p(batch_size, train_dataset, val_dataset, test_dataset, checkpo
                  ModelCheckpoint(dirpath=model_path, filename=save_model_name, save_weights_only=True,
                                  mode=mode, monitor=monitor, save_top_k=1),
                  LearningRateMonitor("epoch")]
+    tb_logger = pl_loggers.CSVLogger(save_dir=os.path.join(model_path, "log/"))
     trainer = pl.Trainer(default_root_dir=model_path,
                          accelerator="gpu",
                          devices=devices,
@@ -221,10 +224,12 @@ def train_simclr_p(batch_size, train_dataset, val_dataset, test_dataset, checkpo
                          max_epochs=kwargs["max_epochs"],
                          callbacks=callbacks,
                          log_every_n_steps=1,
-                         sync_batchnorm=True)
+                         sync_batchnorm=True,
+                         logger=tb_logger)
     trainer.logger._default_hp_metric = None
 
-    simclr_model = SimCLR.load_from_checkpoint(os.path.join(checkpoint_path, encoder_path, "SimCLR", "SimCLR.ckpt"))
+    simclr_model = SimCLR.load_from_checkpoint(
+        os.path.join(checkpoint_path, "SimCLR", encoder_path, encoder_path + ".ckpt"))
 
     # Data loaders
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True,

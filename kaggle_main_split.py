@@ -39,7 +39,7 @@ if __name__ == "__main__":
     # Path to the folder where the datasets are
     DATASET_PATH = os.getenv('KAGGLE_BALANCED_DATASET_PATH')
     # Path to the folder where the pretrained models are saved
-    CHECKPOINT_PATH = "trained_models/kaggle_balanced_portion/SimCLR/"
+    CHECKPOINT_PATH = "trained_models/kaggle_balanced_portion_top5/SimCLR/"
     # Path to style transferred images
     # NST_PATH = "data/nst_balanced.hdf5"
     # In this notebook, we use data loaders with heavier computational processing. It is recommended to use as many
@@ -57,7 +57,7 @@ if __name__ == "__main__":
                ("AMD", 1),
                ("DME", 2)]
 
-    i = 0
+    i = 0.0
     while i < 1:
         train_dataset = OCTDataset(data_root=DATASET_PATH,
                                    transform=ContrastiveTransformations(train_aug, n_views=N_VIEWS),
@@ -67,7 +67,7 @@ if __name__ == "__main__":
                                    # style_hdf5_path=NST_PATH,
                                    dataset_func=get_kaggle_imgs,
                                    )
-        print("len train:", len(train_dataset))
+        print(round(i, 1), "len train:", len(train_dataset))
         # print(set(np.array(range(1, PATIENTS + 1))) -set(choices))
         # val_dataset = OCTDataset(data_root=DATASET_PATH,
         #                          transform=ContrastiveTransformations(train_aug, n_views=N_VIEWS),
@@ -91,10 +91,11 @@ if __name__ == "__main__":
                                     n_views=N_VIEWS,
                                     gradient_accumulation_steps=1,
                                     patience=50,
-                                    save_model_name="SimCLR_"+str(i),
-                                    monitor="train_acc_top25",
+                                    save_model_name="SimCLR_" + str(i),
+                                    monitor="train_acc_top5",
                                     # monitor="train_acc_mean_pos",
                                     mode="max"
                                     )
 
         i += 0.1
+        i = round(i, 1)

@@ -21,30 +21,37 @@ class ResNet(pl.LightningModule):
         super().__init__()
         self.save_hyperparameters()
         self.model = torchvision.models.resnet18(num_classes=len(self.hparams.classes))
-        self.train_ac = MulticlassAccuracy(num_classes=len(self.classes), average=None)
-        self.val_ac = MulticlassAccuracy(num_classes=len(self.classes), average=None)
-        self.test_ac = MulticlassAccuracy(num_classes=len(self.classes), average=None)
+        self.train_ac = MulticlassAccuracy(num_classes=len(self.hparams.classes), average=None)
+        self.val_ac = MulticlassAccuracy(num_classes=len(self.hparams.classes), average=None)
+        self.test_ac = MulticlassAccuracy(num_classes=len(self.hparams.classes), average=None)
 
-        self.train_p = MulticlassPrecision(num_classes=len(self.classes), average=None)
-        self.val_p = MulticlassPrecision(num_classes=len(self.classes), average=None)
-        self.test_p = MulticlassPrecision(num_classes=len(self.classes), average=None)
+        self.train_p = MulticlassPrecision(num_classes=len(self.hparams.classes), average=None)
+        self.val_p = MulticlassPrecision(num_classes=len(self.hparams.classes), average=None)
+        self.test_p = MulticlassPrecision(num_classes=len(self.hparams.classes), average=None)
 
-        self.train_p = MulticlassPrecision(num_classes=len(self.classes), average=None)
-        self.val_p = MulticlassPrecision(num_classes=len(self.classes), average=None)
-        self.test_p = MulticlassPrecision(num_classes=len(self.classes), average=None)
+        self.train_p = MulticlassPrecision(num_classes=len(self.hparams.classes), average=None)
+        self.val_p = MulticlassPrecision(num_classes=len(self.hparams.classes), average=None)
+        self.test_p = MulticlassPrecision(num_classes=len(self.hparams.classes), average=None)
 
-        task = "binary" if len(self.classes) == 2 else "multiclass"
+        task = "binary" if len(self.hparams.classes) == 2 else "multiclass"
         self.train_f1 = F1Score(task=task, num_classes=3)
-        self.val_f1 = F1Score(task=task, num_classes=len(self.classes))
-        self.test_f1 = F1Score(task=task, num_classes=len(self.classes))
+        self.val_f1 = F1Score(task=task, num_classes=len(self.hparams.classes))
+        self.test_f1 = F1Score(task=task, num_classes=len(self.hparams.classes))
 
-        self.train_auc = AUROC(task=task, num_classes=len(self.classes))
-        self.val_auc = AUROC(task=task, num_classes=len(self.classes))
-        self.test_auc = AUROC(task=task, num_classes=len(self.classes))
+        self.train_auc = AUROC(task=task, num_classes=len(self.hparams.classes))
+        self.val_auc = AUROC(task=task, num_classes=len(self.hparams.classes))
+        self.test_auc = AUROC(task=task, num_classes=len(self.hparams.classes))
 
-        self.metrics = {"train": [self.train_ac, self.train_p, self.train_f1, self.train_auc],
-                        "val": [self.val_ac, self.val_p, self.val_f1, self.val_auc],
-                        "test": [self.test_ac, self.test_p, self.test_f1, self.test_auc]}
+        self.metrics = {"train": [self.train_ac, self.train_p, self.train_f1,
+                                  # self.train_auc
+                                  ],
+                        "val": [self.val_ac, self.val_p, self.val_f1,
+                                # self.val_auc
+                                ],
+                        "test": [self.test_ac, self.test_p, self.test_f1,
+                                 # self.test_auc
+                                 ]
+                        }
 
     def configure_optimizers(self):
         optimizer = optim.AdamW(self.parameters(),
@@ -70,6 +77,7 @@ class ResNet(pl.LightningModule):
         labels = batch_parts["labels"]
         for metric in self.metrics["train"]:
             metric.update(preds, labels)
+        self.train_auc.update(F.one_hot(preds, len(self.hparams.classes)).type(torch.float32).to(preds.get_device()), labels)
         return batch_parts["loss"]
 
     def training_epoch_end(self, outputs):
@@ -86,9 +94,10 @@ class ResNet(pl.LightningModule):
         log["train_f1"] = f1
         log["train_auc"] = auc
         log["train_loss"] = outputs[-1]
-        self.log_dict(log, sync_dist=True, on_epoch=True, prog_bar=True)
+        self.log_dict(log, sync_dist=True, on_epoch=True, prog_bar=True, logger=True)
         for metric in self.metrics["train"]:
             metric.reset()
+        self.train_auc.reset()
 
     def validation_step(self, batch, batch_idx):
         return self._calculate_loss(batch)
@@ -98,6 +107,8 @@ class ResNet(pl.LightningModule):
         labels = batch_parts["labels"]
         for metric in self.metrics["val"]:
             metric.update(preds, labels)
+        self.val_auc.update(F.one_hot(preds, len(self.hparams.classes)).type(torch.float32).to(preds.get_device()),
+                              labels)
         return batch_parts["loss"]
 
     def validation_epoch_end(self, outputs):
@@ -114,9 +125,10 @@ class ResNet(pl.LightningModule):
         log["val_f1"] = f1
         log["val_auc"] = auc
         log["val_loss"] = outputs[-1]
-        self.log_dict(log, sync_dist=True, on_epoch=True, prog_bar=True)
+        self.log_dict(log, sync_dist=True, on_epoch=True, prog_bar=True, logger=True)
         for metric in self.metrics["val"]:
             metric.reset()
+        self.val_auc.reset()
 
     def test_step(self, batch, batch_idx):
         return self._calculate_loss(batch)
@@ -126,6 +138,8 @@ class ResNet(pl.LightningModule):
         labels = batch_parts["labels"]
         for metric in self.metrics["test"]:
             metric.update(preds, labels)
+        self.test_auc.update(F.one_hot(preds, len(self.hparams.classes)).type(torch.float32).to(preds.get_device()),
+                              labels)
         return batch_parts["loss"]
 
     def test_epoch_end(self, outputs):
@@ -142,6 +156,7 @@ class ResNet(pl.LightningModule):
         log["test_f1"] = f1
         log["test_auc"] = auc
         log["test_loss"] = outputs[-1]
-        self.log_dict(log, sync_dist=True, on_epoch=True, prog_bar=True)
+        self.log_dict(log, sync_dist=True, on_epoch=True, prog_bar=True, logger=True)
         for metric in self.metrics["test"]:
             metric.reset()
+        self.test_auc.reset()
