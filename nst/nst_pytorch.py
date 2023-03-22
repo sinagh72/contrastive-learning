@@ -9,6 +9,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 import cv2
 from PIL import Image
+Image.MAX_IMAGE_PIXELS = None
 import matplotlib.pyplot as plt
 
 import torchvision.transforms as transforms
@@ -312,7 +313,9 @@ def stylize_dataset_multiple(dataset, style_dir, out_path, style_weight=1, conte
         content_info = dataset[idx]["img"]
 
         for i, style_path in enumerate(random.choice(styles, style_views, replace=False)):
-            style_img = check_img_validity(style_path, styles)
+            # style_img = check_img_validity(style_path, styles)
+            style_img = Image.open(style_path).convert('RGB')
+
             # if save_count != 0:
             #     style_img.save(f"../data/sample_nst/style_img_{idx}_{i}.jpg")
             content_img = image_loader(content_info.copy(), loader_oct)
