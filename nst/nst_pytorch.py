@@ -9,6 +9,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 import cv2
 from PIL import Image
+
 Image.MAX_IMAGE_PIXELS = None
 import matplotlib.pyplot as plt
 
@@ -209,24 +210,16 @@ def run_style_transfer(cnn, normalization_mean, normalization_std,
 unloader = transforms.ToPILImage()
 
 
-def check_img_validity(style_path, styles):
-    img_path = style_path
-    count = 0
-
-    def check():
-        img = Image.open(img_path).convert('RGB')
-        return img
-    try:
-        ee = check()
-        return ee
-    except Exception as e:
-        print(e)
-        img_path = random.choice(styles, 1)
-        check_img_validity(img_path, styles)
-        count += 1
-        if count == 4:
-            exit("Error in loading img")
-
+def check_img_validity(style_path, styles, num_retries=5):
+    for attempt_no in range(num_retries):
+        try:
+            return Image.open(style_path).convert('RGB')
+        except Exception as error:
+            style_path = random.choice(styles, 1)
+            if attempt_no < (num_retries - 1):
+                print(error)
+            else:
+                raise error
 
 def imshow(tensor, title=None):
     image = tensor.cpu().clone()  # we clone the tensor to not do changes on it
@@ -313,8 +306,8 @@ def stylize_dataset_multiple(dataset, style_dir, out_path, style_weight=1, conte
         content_info = dataset[idx]["img"]
 
         for i, style_path in enumerate(random.choice(styles, style_views, replace=False)):
-            # style_img = check_img_validity(style_path, styles)
-            style_img = Image.open(style_path).convert('RGB')
+            style_img = check_img_validity(style_path, styles)
+            # style_img = Image.open(style_path).convert('RGB')
 
             # if save_count != 0:
             #     style_img.save(f"../data/sample_nst/style_img_{idx}_{i}.jpg")
