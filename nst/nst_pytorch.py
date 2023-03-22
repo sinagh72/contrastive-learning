@@ -215,7 +215,7 @@ def check_img_validity(style_path, styles, num_retries=5):
         try:
             return Image.open(style_path).convert('RGB')
         except Exception as error:
-            style_path = random.choice(styles, 1)
+            style_path = random.choice(styles, 1)[0]
             if attempt_no < (num_retries - 1):
                 print(error)
             else:
