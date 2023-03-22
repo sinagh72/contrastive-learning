@@ -93,7 +93,7 @@ def get_style_model_and_losses(cnn, normalization_mean, normalization_std,
 
     # assuming that cnn is a nn.Sequential, so we make a new nn.Sequential
     # to put in modules that are supposed to be activated sequentially
-    model = nn.Sequential(normalization)
+    model = nn.Sequential(normalization).to(device)
 
     i = 0  # increment every time we see a conv
     for layer in cnn.children():
@@ -362,7 +362,7 @@ if __name__ == "__main__":
     # args = parser.parse_args()
     alpha = 0.15
     style_views = 3
-    save_size = 512
+    save_size = 128
 
     classes = [("NORMAL", 0),
                ("AMD", 1),
@@ -389,7 +389,7 @@ if __name__ == "__main__":
                          mode="test",
                          dataset_func=get_kaggle_imgs,
                          )
-    p = torch.utils.data.Subset(dataset, np.arange(5350-1, len(dataset)-1))
-    stylize_dataset_multiple(dataset=p, style_dir=style_path, out_path=out_path,
+    # p = torch.utils.data.Subset(dataset, np.arange(5350-1, len(dataset)-1))
+    stylize_dataset_multiple(dataset=dataset, style_dir=style_path, out_path=out_path,
                              style_weight=1000000, content_weight=1, num_steps=1,
                              save_size=save_size, style_views=style_views, save_sample=False)
