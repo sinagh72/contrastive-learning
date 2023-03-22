@@ -26,16 +26,18 @@ class SimCLRP(pl.LightningModule):
                 break
             param.requires_grad = False
             counter += 1
-
+        self.encoder = encoder
         self.model = nn.Sequential(
-            encoder,
-            nn.Linear(feature_dim, 10 * feature_dim),
-            nn.Dropout(),
-            nn.LeakyReLU(),
-            nn.Linear(10 * feature_dim, 5 * feature_dim),
-            nn.Dropout(),
-            nn.LeakyReLU(),
-            nn.Linear(5 * feature_dim, len(classes)),  # Linear(feature dim, #classes)
+            self.encoder,
+            nn.Linear(feature_dim, len(classes)),  # Linear(feature dim, #classes)
+
+            # nn.Linear(feature_dim, 10 * feature_dim),
+            # nn.Dropout(),
+            # nn.LeakyReLU(),
+            # nn.Linear(10 * feature_dim, 5 * feature_dim),
+            # nn.Dropout(),
+            # nn.LeakyReLU(),
+            # nn.Linear(5 * feature_dim, len(classes)),  # Linear(feature dim, #classes)
         )
 
         self.train_ac = MulticlassAccuracy(num_classes=len(self.classes), average=None)

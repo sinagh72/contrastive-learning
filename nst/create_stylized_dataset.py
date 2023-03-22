@@ -62,8 +62,8 @@ if __name__ == "__main__":
     #                      )
     load_dotenv(dotenv_path="../data/.env")
     style_path = os.getenv('STYLES_PATH')
-    DATASET_PATH = os.getenv('KAGGLE_FULL_DATASET_PATH')
-    out_path = "../data/nst_full.hdf5"
+    DATASET_PATH = os.getenv('KAGGLE_BALANCED_DATASET_PATH')
+    out_path = "../data/nst_bala123123nced.hdf5"
 
     dataset = OCTDataset(data_root=DATASET_PATH,
                          img_type="RGB",
@@ -88,4 +88,4 @@ if __name__ == "__main__":
 
     stylize_dataset_multiple(dataset=dataset, style_dir=style_path, out_path=out_path, alpha=alpha,
                              content_size=content_size,
-                             style_size=style_size, save_size=save_size, style_views=style_views)
+                             style_size=style_size, save_size=save_size, style_views=style_views, save_sample=False)

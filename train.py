@@ -25,7 +25,7 @@ def train_simclr(batch_size, max_epochs=500, train_data=None, val_data=None, che
     model_path = os.path.join(checkpoint_path, save_model_name)
     early_stopping = EarlyStopping(monitor=monitor, patience=patience, verbose=False, mode=mode)
     accumulator = GradientAccumulationScheduler(scheduling={0: kwargs["gradient_accumulation_steps"]})
-    # logger = TensorBoardLogger(model_path, name=save_model_name + "_tensor_board")
+    tb_logger = pl_loggers.CSVLogger(save_dir=os.path.join(model_path, "log/"))
     trainer = pl.Trainer(default_root_dir=model_path,
                          accelerator="gpu",
                          devices=devices,
@@ -37,7 +37,7 @@ def train_simclr(batch_size, max_epochs=500, train_data=None, val_data=None, che
                              ModelCheckpoint(dirpath=model_path, filename=save_model_name, save_top_k=1,
                                              save_weights_only=True, mode=mode, monitor=monitor),
                              LearningRateMonitor('epoch')],
-                         # logger=logger,
+                         logger=tb_logger,
                          log_every_n_steps=1,
                          sync_batchnorm=True
                          )
@@ -147,24 +147,23 @@ def prepare_data_features(model, dataset, device, num_workers, batch_size=64):
 
 
 def train_resnet(batch_size, train_data, val_data, test_data, checkpoint_path,
-                 save_model_name=None, devices=1, strategy=None, **kwargs):
-    metric = "accuracy"
-    if "metric" in kwargs:
-        metric = kwargs["metric"]
-
+                 save_model_name=None, devices=1, strategy=None, monitor="val_loss", patience=10, mode="max", **kwargs):
     model_path = os.path.join(checkpoint_path, save_model_name)
-    early_stopping = EarlyStopping(monitor="val_loss", patience=10, verbose=False, mode="min")
+
+    callbacks = [LearningRateMonitor("epoch")]
+    if monitor is not None:
+        callbacks.append(EarlyStopping(monitor=monitor, patience=patience, verbose=False,
+                                       mode=mode))
+        callbacks.append(ModelCheckpoint(dirpath=model_path, filename=save_model_name, save_weights_only=True,
+                                         mode=mode, monitor=monitor, save_top_k=1))
+
     tb_logger = pl_loggers.CSVLogger(save_dir=os.path.join(model_path, "log/"))
     trainer = pl.Trainer(default_root_dir=model_path,
                          accelerator="gpu",
                          devices=devices,
                          strategy=strategy,
                          max_epochs=kwargs["max_epochs"],
-                         callbacks=[early_stopping,
-                                    ModelCheckpoint(
-                                        dirpath=model_path, filename=save_model_name, save_weights_only=True, mode="min"
-                                        , monitor="val_loss", save_top_k=1),
-                                    LearningRateMonitor("epoch")],
+                         callbacks=callbacks,
                          log_every_n_steps=1,
                          sync_batchnorm=True,
                          logger=tb_logger)
@@ -193,11 +192,21 @@ def train_resnet(batch_size, train_data, val_data, test_data, checkpoint_path,
     val_result = trainer.test(model, valid_loader, verbose=False)
     test_result = trainer.test(model, test_loader, verbose=False)
     result = {"train": {}, "val": {}, "test": {}}
-    print(train_result)
-    for c in kwargs["classes"]:
-        result["train"][f"{metric}_" + c[0]] = train_result[0][f"test_{metric}_" + c[0]]
-        result["val"][f"{metric}_" + c[0]] = val_result[0][f"test_{metric}_" + c[0]]
-        result["test"][f"{metric}_" + c[0]] = test_result[0][f"test_{metric}_" + c[0]]
+    # metrics = ["accuracy", "precision"]
+    # for c in kwargs["classes"]:
+    #     for m in metrics:
+    #         result["train"][f"{m}_" + c[0]] = train_result[0][f"test_{m}_" + c[0]]
+    #         result["val"][f"{m}_" + c[0]] = val_result[0][f"test_{m}_" + c[0]]
+    #         result["test"][f"{m}_" + c[0]] = test_result[0][f"test_{m}_" + c[0]]
+    result["test"]["f1"] = test_result[0]["test_f1"]
+    result["val"]["f1"] = val_result[0]["test_f1"]
+    result["train"]["f1"] = train_result[0]["test_f1"]
+
+    result["test"]["auc"] = test_result[0]["test_auc"]
+    result["val"]["auc"] = val_result[0]["test_auc"]
+    result["train"]["auc"] = train_result[0]["test_auc"]
+
+    result["test"]["loss"] = train_result[0]["test_loss"]
 
     return model, result
 
@@ -207,15 +216,15 @@ def train_simclr_p(batch_size, train_dataset, val_dataset, test_dataset, checkpo
                    encoder_path="SimCLR",
                    **kwargs):
     pl.seed_everything(42)  # To be reproducable
-    metric = "accuracy"
-    if "metric" in kwargs:
-        metric = kwargs["metric"]
 
     model_path = os.path.join(checkpoint_path, save_model_name)
-    callbacks = [EarlyStopping(monitor=monitor, patience=patience, verbose=False, mode=mode),
-                 ModelCheckpoint(dirpath=model_path, filename=save_model_name, save_weights_only=True,
-                                 mode=mode, monitor=monitor, save_top_k=1),
-                 LearningRateMonitor("epoch")]
+    callbacks = [LearningRateMonitor("epoch")]
+    if monitor is not None:
+        callbacks.append(EarlyStopping(monitor=monitor, patience=patience, verbose=False,
+                                       mode=mode))
+        callbacks.append(ModelCheckpoint(dirpath=model_path, filename=save_model_name, save_weights_only=True,
+                                         mode=mode, monitor=monitor, save_top_k=1))
+
     tb_logger = pl_loggers.CSVLogger(save_dir=os.path.join(model_path, "log/"))
     trainer = pl.Trainer(default_root_dir=model_path,
                          accelerator="gpu",
@@ -242,17 +251,28 @@ def train_simclr_p(batch_size, train_dataset, val_dataset, test_dataset, checkpo
     model = SimCLRP(encoder=simclr_model, **kwargs)
     trainer.fit(model, train_loader, valid_loader)
     model = SimCLRP.load_from_checkpoint(trainer.checkpoint_callback.best_model_path,
-                                         encoder=simclr_model, **kwargs)
+                                         encoder=model.encoder, **kwargs)
 
     # Test best model on validation set
     train_result = trainer.test(model, train_loader, verbose=False)
     val_result = trainer.test(model, valid_loader, verbose=False)
     test_result = trainer.test(model, test_loader, verbose=False)
     result = {"train": {}, "val": {}, "test": {}}
-    for c in kwargs["classes"]:
-        result["train"][f"{metric}_" + c[0]] = train_result[0][f"test_{metric}_" + c[0]]
-        result["val"][f"{metric}_" + c[0]] = val_result[0][f"test_{metric}_" + c[0]]
-        result["test"][f"{metric}_" + c[0]] = test_result[0][f"test_{metric}_" + c[0]]
+    # metrics = ["accuracy", "precision"]
+    # for c in kwargs["classes"]:
+    #     for m in metrics:
+    #         result["train"][f"{m}_" + c[0]] = train_result[0][f"test_{m}_" + c[0]]
+    #         result["val"][f"{m}_" + c[0]] = val_result[0][f"test_{m}_" + c[0]]
+    #         result["test"][f"{m}_" + c[0]] = test_result[0][f"test_{m}_" + c[0]]
+    result["test"]["f1"] = test_result[0]["test_f1"]
+    result["val"]["f1"] = val_result[0]["test_f1"]
+    result["train"]["f1"] = train_result[0]["test_f1"]
+
+    result["test"]["auc"] = test_result[0]["test_auc"]
+    result["val"]["auc"] = val_result[0]["test_auc"]
+    result["train"]["auc"] = train_result[0]["test_auc"]
+
+    result["test"]["loss"] = train_result[0]["test_loss"]
 
     return model, result
 

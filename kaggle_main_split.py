@@ -48,7 +48,7 @@ if __name__ == "__main__":
 
     # Ensure that all operations are deterministic on GPU (if used) for reproducibility
     torch.backends.cudnn.deterministic = True
-    torch.backends.cudnn.benchmark = True
+    torch.backends.cudnn.benchmark = False
 
     device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
     print("Device:", device)
@@ -57,45 +57,38 @@ if __name__ == "__main__":
                ("AMD", 1),
                ("DME", 2)]
 
-    i = 0.0
-    while i < 1:
-        train_dataset = OCTDataset(data_root=DATASET_PATH,
-                                   transform=ContrastiveTransformations(train_aug, n_views=N_VIEWS),
-                                   classes=classes,
-                                   mode="train",
-                                   val_split=i,
-                                   # style_hdf5_path=NST_PATH,
-                                   dataset_func=get_kaggle_imgs,
-                                   )
-        print(round(i, 1), "len train:", len(train_dataset))
-        # print(set(np.array(range(1, PATIENTS + 1))) -set(choices))
-        # val_dataset = OCTDataset(data_root=DATASET_PATH,
-        #                          transform=ContrastiveTransformations(train_aug, n_views=N_VIEWS),
-        #                          classes=classes,
-        #                          mode="val",
-        #                          val_split=0.3,
-        #                          # style_hdf5_path=NST_PATH,
-        #                          dataset_func=get_kaggle_imgs,
-        #                          )
-        # print("len val: ", len(val_dataset))
-        strategy = None if devices == 1 else DDPStrategy(find_unused_parameters=False)
-        simclr_model = train_simclr(devices=devices,
-                                    strategy=strategy,
-                                    batch_size=min(len(train_dataset) // devices, 450),
-                                    # batch_size=4,
-                                    max_epochs=2000,
-                                    train_data=train_dataset,
-                                    checkpoint_path=CHECKPOINT_PATH,
-                                    hidden_dim=5 * 128,
-                                    feature_dim=128,
-                                    n_views=N_VIEWS,
-                                    gradient_accumulation_steps=1,
-                                    patience=50,
-                                    save_model_name="SimCLR_" + str(i),
-                                    monitor="train_acc_top5",
-                                    # monitor="train_acc_mean_pos",
-                                    mode="max"
-                                    )
-
-        i += 0.1
-        i = round(i, 1)
+    train_dataset = OCTDataset(data_root=DATASET_PATH,
+                               transform=ContrastiveTransformations(train_aug, n_views=N_VIEWS),
+                               classes=classes,
+                               mode="train",
+                               val_split=0,
+                               # style_hdf5_path=NST_PATH,
+                               dataset_func=get_kaggle_imgs,
+                               )
+    # val_dataset = OCTDataset(data_root=DATASET_PATH,
+    #                          transform=ContrastiveTransformations(train_aug, n_views=N_VIEWS),
+    #                          classes=classes,
+    #                          mode="val",
+    #                          val_split=0.3,
+    #                          # style_hdf5_path=NST_PATH,
+    #                          dataset_func=get_kaggle_imgs,
+    #                          )
+    # print("len val: ", len(val_dataset))
+    strategy = None if devices == 1 else DDPStrategy(find_unused_parameters=False)
+    simclr_model = train_simclr(devices=devices,
+                                strategy=strategy,
+                                batch_size=min(len(train_dataset) // devices, 450),
+                                # batch_size=4,
+                                max_epochs=2000,
+                                train_data=train_dataset,
+                                checkpoint_path=CHECKPOINT_PATH,
+                                hidden_dim=5 * 128,
+                                feature_dim=128,
+                                n_views=N_VIEWS,
+                                gradient_accumulation_steps=1,
+                                patience=50,
+                                save_model_name="SimCLR_Full",
+                                monitor="train_acc_top5",
+                                # monitor="train_acc_mean_pos",
+                                mode="max"
+                                )

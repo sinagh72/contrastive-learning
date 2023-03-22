@@ -73,7 +73,7 @@ def stylize_dataset_multiple(dataset, style_dir, out_path, alpha=1., content_siz
     # model = torch.load('./models/decoder.pth', map_location=lambda storage, loc: storage, pickle_module=pickle)
 
     decoder.load_state_dict(torch.load('models/decoder.pth'))
-    vgg.load_state_dict(torch.load('models/vgg_normalised.t7'))
+    vgg.load_state_dict(torch.load('models/vgg_normalised.pth'))
     vgg = nn.Sequential(*list(vgg.children())[:31])
 
     vgg.to(device)
@@ -118,20 +118,19 @@ def stylize_dataset_multiple(dataset, style_dir, out_path, alpha=1., content_siz
             output_img = torchvision.transforms.ToPILImage()(output)
             if save_sample:
                 cv2.imwrite(f"../data/sample/Style_image_{idx}.jpg", np.array(style_img))
-                cv2.imwrite(f"../data/sample/regular_augmentation_1_{idx}.jpg",
-                            np.array(representation_transform(content_img)))
-                cv2.imwrite(f"../data/sample/regular_augmentation_2_{idx}.jpg",
-                            np.array(representation_transform(content_img)))
-                cv2.imwrite(f"../data/sample/Original_image_{idx}.jpg", np.array(content_img))
+                # cv2.imwrite(f"../data/sample/regular_augmentation_1_{idx}.jpg",
+                #             np.array(representation_transform(content_img)))
+                # cv2.imwrite(f"../data/sample/regular_augmentation_2_{idx}.jpg",
+                #             np.array(representation_transform(content_img)))
+                # cv2.imwrite(f"../data/sample/Original_image_{idx}.jpg", np.array(content_img))
                 cv2.imwrite(f"../data/sample/nst_image_{idx}.jpg", np.array(transform(output_img)))
-                cv2.imwrite(f"../data/sample/regular_augmentation_nst_image_1_{idx}.jpg",
-                            np.array(transform(representation_transform(output_img))))
-                cv2.imwrite(f"../data/sample/regular_augmentation_nst_image_2_{idx}.jpg",
-                            np.array(transform(representation_transform(output_img))))
+                # cv2.imwrite(f"../data/sample/regular_augmentation_nst_image_1_{idx}.jpg",
+                #             np.array(transform(representation_transform(output_img))))
+                # cv2.imwrite(f"../data/sample/regular_augmentation_nst_image_2_{idx}.jpg",
+                #             np.array(transform(representation_transform(output_img))))
 
             output_img = output_img.resize((save_size, save_size), Image.LANCZOS)
             output = np.array(output_img)
-
             storage.append(output[None])
             tilename = img_name[:-5] + '_stylized_' + os.path.basename(style_path)[:-4] + img_name[-5:]
             tile_names.append(tilename)

@@ -29,7 +29,7 @@ if __name__ == "__main__":
 
     # Ensure that all operations are deterministic on GPU (if used) for reproducibility
     torch.backends.cudnn.deterministic = True
-    torch.backends.cudnn.benchmark = True
+    torch.backends.cudnn.benchmark = False
 
     print("Number of workers:", NUM_WORKERS)
 
@@ -52,46 +52,53 @@ if __name__ == "__main__":
 
                               )
 
-    batch_size = 128
-    i = 0.7
-    train_val_dataset = OCTDataset(data_root=DATASET_PATH,
-                                   transform=img_transforms,
-                                   dataset_func=get_kaggle_imgs,
-                                   classes=classes,
-                                   mode="val",
-                                   val_split=0.3,
-                                   # style_hdf5_path=NST_PATH,
-                                   )
-    print(len(train_val_dataset))
-    train_dataset, val_dataset = train_val_dataset.split(0.1)
-    print("==================Resnet==================")
-    log_name_suffix = "kaggle_portion"
-    strategy = None if devices == 1 else DDPStrategy(find_unused_parameters=False)
-    resnet_model, resnet_result = train_resnet(devices=devices,
-                                               strategy=strategy,
-                                               batch_size=batch_size,
-                                               train_data=train_dataset,
-                                               val_data=val_dataset,
-                                               test_data=test_dataset,
-                                               lr=1e-3,
-                                               weight_decay=2e-4,
-                                               checkpoint_path=CHECKPOINT_PATH + "/ResNet",
-                                               max_epochs=100,
-                                               classes=classes,
-                                               # metric=metric,
-                                               save_model_name="ResNet_"+str(i))
+    batch_size = 64
+    mode = "max"
+    monitor = "val_loss"
+    patience = 5
+    max_epochs = 100
 
-    file_mode = "a" if os.path.exists(f'log/{log_name_suffix}_resnet_{batch_size}.txt') else "w"
-    with open(f'log/{log_name_suffix}_resnet_{batch_size}.txt', file_mode) as f:
-        f.write("====================================")
-        f.write('\n')
-        f.write(str(resnet_result['train']))
-        f.write('\n' + str(resnet_result['val']))
-        f.write('\n' + str(resnet_result['test']))
-        f.write('\n')
-    while i < 1:
-        log_name_suffix = "kaggle_portion_" + str(i) + "_"
+    i = 0.1
+    while i <= 1:
+        train_val_dataset = OCTDataset(data_root=DATASET_PATH,
+                                       transform=img_transforms,
+                                       dataset_func=get_kaggle_imgs,
+                                       classes=classes,
+                                       mode="train",
+                                       val_split=round(1 - i, 1),
+                                       # style_hdf5_path=NST_PATH,
+                                       )
+        print(len(train_val_dataset))
+        train_dataset, val_dataset = train_val_dataset.split(0.1)
+        print("==================Resnet==================")
+        log_name_suffix = "kaggle_portion_top5"
+        strategy = None if devices == 1 else DDPStrategy(find_unused_parameters=False)
+        resnet_model, resnet_result = train_resnet(devices=devices,
+                                                   strategy=strategy,
+                                                   batch_size=batch_size,
+                                                   train_data=train_dataset,
+                                                   val_data=val_dataset,
+                                                   test_data=test_dataset,
+                                                   lr=1e-3,
+                                                   weight_decay=2e-4,
+                                                   checkpoint_path=CHECKPOINT_PATH + "/ResNet",
+                                                   max_epochs=max_epochs,
+                                                   classes=classes,
+                                                   save_model_name="ResNet_" + str(round(i, 1)),
+                                                   mode=mode,
+                                                   monitor=monitor,
+                                                   patience=patience)
 
+        file_mode = "a" if os.path.exists(f'log/{log_name_suffix}_resnet_{batch_size}_{str(round(i, 1))}.txt') else "w"
+        with open(f'log/{log_name_suffix}_resnet_{batch_size}_{str(round(i, 1))}.txt', file_mode) as f:
+            f.write("====================================")
+            f.write('\n')
+            f.write(str(resnet_result['train']))
+            f.write('\n' + str(resnet_result['val']))
+            f.write('\n' + str(resnet_result['test']))
+            f.write('\n')
+        del resnet_model
+        torch.cuda.empty_cache()
         # trained_dataset = OCTDataset(data_root=DATASET_PATH,
         #                              transform=img_transforms,
         #                              classes=classes,
@@ -100,8 +107,6 @@ if __name__ == "__main__":
         #                              # style_hdf5_path=NST_PATH,
         #                              dataset_func=get_kaggle_imgs,
         #                              )
-
-
 
         # train_dataset, val_dataset = random_split(train_val_dataset, [0.9, 0.1],
         #                                           generator=torch.Generator().manual_seed(42))
@@ -123,17 +128,18 @@ if __name__ == "__main__":
                                                        lr=1e-3,
                                                        feature_dim=128,
                                                        weight_decay=1e-3,
-                                                       max_epochs=100,
-                                                       mode="min",
-                                                       monitor="val_loss",
-                                                       patience=10,
+                                                       max_epochs=max_epochs,
+                                                       mode=mode,
+                                                       monitor=monitor,
+                                                       patience=patience,
                                                        freeze_p=0.0,
-                                                       encoder_path="SimCLR_" + str(i),
-                                                       # metric=metric,
-                                                       save_model_name="SimCLR_portion_" + str(i))
+                                                       encoder_path="SimCLR_" + str(1.0),
+                                                       save_model_name="SimCLR_portion_" + str(round(i, 1)),
+                                                       )
 
-        file_mode = "a" if os.path.exists(f'log/{log_name_suffix}_simclrp_{batch_size}.txt') else "w"
-        with open(f'log/{log_name_suffix}_simclrp_{batch_size}.txt', file_mode) as f:
+        file_mode = "a" if os.path.exists(
+            f'log/{log_name_suffix}_simclrp_{batch_size}_{str(round(i, 1))}.txt') else "w"
+        with open(f'log/{log_name_suffix}_simclrp_{batch_size}_{str(round(i, 1))}.txt', file_mode) as f:
             f.write("====================================")
             f.write('\n')
             f.write(str(simclrp_result['train']))
@@ -141,10 +147,10 @@ if __name__ == "__main__":
             f.write('\n' + str(simclrp_result['test']))
             f.write('\n')
 
-
-
         i += 0.1
         i = round(i, 1)
+        del simclrp_model
+        torch.cuda.empty_cache()
 # print(f"{metric} on training set:{resnet_result['train']}")
 # print(f"{metric} on validation set: {resnet_result['val']}")
 # print(f"{metric} on test set: {resnet_result['test']}")
