@@ -1,14 +1,14 @@
 python 3.9
-conda install pytorch torchvision torchaudio pytorch-cuda=11.7 -c pytorch -c nvidia
+conda install pytorch=1.13.1 torchvision=0.14.1 torchaudio=0.13.1 pytorch-cuda=11.7 -c pytorch -c nvidia
 matplotlib==3.7.0
-seaborn
+seaborn==0.12.2
 pytorch-lightning==1.8
-mmcv
-natsort
-h5py
-python-dotenv
+mmcv==1.7.1
+natsort==8.3.0
+h5py==3.8.0
+python-dotenv==1.0.0
 lightning-bolts
-subsetsum
-tables
-cchardet
-chardet
+subsetsum==0.0.2
+tables==3.8.0
+cchardet==2.1.7
+chardet==5.1.0
