@@ -61,7 +61,7 @@ if __name__ == "__main__":
                                    mode="train",
                                    cv=CV,
                                    cv_counter=i,
-                                   # style_hdf5_path=NST_PATH,
+                                   # nst_path=NST_PATH,
                                    dataset_func=get_kaggle_imgs,
                                    )
         # print(set(np.array(range(1, PATIENTS + 1))) -set(choices))
@@ -71,7 +71,7 @@ if __name__ == "__main__":
                                  mode="val",
                                  cv=CV,
                                  cv_counter=i,
-                                 # style_hdf5_path=NST_PATH,
+                                 # nst_path=NST_PATH,
                                  dataset_func=get_kaggle_imgs,
                                  )
         print("len train:", len(train_dataset))

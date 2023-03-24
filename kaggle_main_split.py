@@ -41,7 +41,7 @@ if __name__ == "__main__":
     # Path to the folder where the pretrained models are saved
     CHECKPOINT_PATH = "trained_models/kaggle_balanced_portion_top5/SimCLR/"
     # Path to style transferred images
-    # NST_PATH = "data/nst_balanced.hdf5"
+    NST_PATH = "data/nst_balanced_new.hdf5"
     # In this notebook, we use data loaders with heavier computational processing. It is recommended to use as many
     # workers as possible in a data loader, which corresponds to the number of CPU cores
     NUM_WORKERS = os.cpu_count() // 2
@@ -62,7 +62,7 @@ if __name__ == "__main__":
                                classes=classes,
                                mode="train",
                                val_split=0,
-                               # style_hdf5_path=NST_PATH,
+                               nst_path=NST_PATH,
                                dataset_func=get_kaggle_imgs,
                                )
     # val_dataset = OCTDataset(data_root=DATASET_PATH,
@@ -70,7 +70,7 @@ if __name__ == "__main__":
     #                          classes=classes,
     #                          mode="val",
     #                          val_split=0.3,
-    #                          # style_hdf5_path=NST_PATH,
+    #                          # nst_path=NST_PATH,
     #                          dataset_func=get_kaggle_imgs,
     #                          )
     # print("len val: ", len(val_dataset))

@@ -1,2 +1,0 @@
-- merge validation and training set
-- find the intersection between training and testing data, remove the intersection from the training data

@@ -1,3 +1,4 @@
+import glob
 import math
 import random
 import warnings
@@ -52,7 +53,7 @@ def split_data(img_paths, val_split, mode, classes):
 class OCTDataset(Dataset):
 
     def __init__(self, data_root, img_type="L", transform=None, img_size=IMAGE_SIZE, classes=None,
-                 dataset_func=None, style_hdf5_path=None, nst_prob=1, **kwargs):
+                 dataset_func=None, nst_path=None, nst_prob=1, **kwargs):
         if classes is None:
             classes = [("NORMAL", 0),
                        ("AMD", 1),
@@ -62,30 +63,32 @@ class OCTDataset(Dataset):
         self.img_size = img_size
         self.img_type = img_type
         self.classes = classes
-        self.style_hdf5_path = style_hdf5_path
+        self.nst_path = nst_path
         if "img_paths" in kwargs:
             self.img_paths = split_data(kwargs["img_paths"], val_split=kwargs["val_split"], mode=kwargs["mode"],
                                         classes=self.classes)
         else:
             self.img_paths = dataset_func(self.data_root, **kwargs)
 
-        self.nst_prob = nst_prob
-        if self.style_hdf5_path is not None:
-            self.nst_img, self.nst_img_dic, self.nst_img_names = get_dfDict(style_hdf5_path)
+        if self.nst_path is not None:
+            self.nst_prob = nst_prob
+            self.nst_path = nst_path
+
+        # self.style_hdf5_path = style_hdf5_path
+        # self.nst_prob = nst_prob
+        # if self.style_hdf5_path is not None:
+        #     self.nst_img, self.nst_img_dic, self.nst_img_names = get_dfDict(style_hdf5_path)
 
     def __getitem__(self, index):
         img_path = self.img_paths[index]
         img_path = img_path.replace("\\", "/")
-
-        if random.uniform(0, 1) < self.nst_prob and self.style_hdf5_path is not None:
-            img = self.load_nst_img(img_path)
+        img_name = img_path.split(self.data_root)[1].split("/")[1]
+        if self.nst_path is not None and random.uniform(0, 1) < self.nst_prob:
+            img = self.load_nst_img(img_path)  # return a list of transformed nst images
         else:
-            image = self.load_img(img_path)
+            img = self.load_img(img_path)  # return an image
             if self.transform is not None:
-                img = self.transform(image)
-            else:
-                # throws error
-                img = image
+                img = self.transform(img)
             # image.show()
         # img = torch.from_numpy(img).permute(2, 0, 1).float()
         """
@@ -94,7 +97,6 @@ class OCTDataset(Dataset):
          - DME    -> 2
          - Normal -> 0
         """
-        img_path = self.img_paths[index]
         label = 0
         for c, v in self.classes:
             if c in img_path:
@@ -105,7 +107,7 @@ class OCTDataset(Dataset):
         # 'label': depends on the classes }
         # img_folder = img_path.split(self.data_root)[1].split("/")[0],
 
-        results = dict(img_path=img_path, img_name=img_path.split(self.data_root)[1].split("/")[1], img=img,
+        results = dict(img_path=img_path, img_name=img_name, img=img,
                        label=label)
         return results
 
@@ -122,26 +124,35 @@ class OCTDataset(Dataset):
         img = Image.open(img_path).convert(self.img_type)
         return img
 
-    def load_nst_img(self, img_path):
-        # iteratively transform all images that are generated using NST
-        selected_idx = np.random.choice(self.nst_img_dic[img_path].index.values, self.transform.n_views, replace=False)
-        imgs = [self.nst_img[i] for i in selected_idx]
-        for i in imgs:
-            Image.fromarray(i).show()
-        images = [self.transform(Image.fromarray(i), False) for i in imgs]
+    def load_nst_img(self, img_name):
+        # find all the nst images corresponding to the img_name
+        nst_img_paths = [nst_img_path for nst_img_path in glob.glob(self.nst_path + f"/{img_name[:-5]}_?.jpg")]
+        # randomly select n_view of them and transform the using the transformation
+        images = [self.transform(self.load_img(img), False) for img in
+                  np.random.choice(nst_img_paths, self.transform.n_views, replace=False)]
         # select n_views of them
         # Note: If n_views > len(generated nst for each image) then the image will be replicated!
         return images
 
+    # def load_nst_img(self, img_path):
+    #     # iteratively transform all images that are generated using NST
+    #     selected_idx = np.random.choice(self.nst_img_dic[img_path].index.values, self.transform.n_views, replace=False)
+    #     imgs = [self.nst_img[i] for i in selected_idx]
+    #     images = [self.transform(Image.fromarray(i), False) for i in imgs]
+    #     print(len(images))
+    #     # select n_views of them
+    #     # Note: If n_views > len(generated nst for each image) then the image will be replicated!
+    #     return images
+
     def split(self, val_split=0.1):
         train_dataset = OCTDataset(data_root=self.data_root, img_type=self.img_type, transform=self.transform,
                                    img_size=IMAGE_SIZE, classes=self.classes,
-                                   style_hdf5_path=self.style_hdf5_path, mode="train", val_split=val_split,
+                                   nst_path=self.nst_path, mode="train", val_split=val_split,
                                    img_paths=self.img_paths)
 
         val_dataset = OCTDataset(data_root=self.data_root, img_type=self.img_type, transform=self.transform,
                                  img_size=IMAGE_SIZE, classes=self.classes,
-                                 style_hdf5_path=self.style_hdf5_path, mode="val", val_split=val_split,
+                                 nst_path=self.nst_path, mode="val", val_split=val_split,
                                  img_paths=self.img_paths)
 
         return train_dataset, val_dataset
@@ -288,5 +299,4 @@ def get_dfDict(path2hdf5):
     df_dict = {}
     for name, path in df.groupby('paths'):
         df_dict[name] = path
-
     return imgs, df_dict, names

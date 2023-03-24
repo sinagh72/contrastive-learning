@@ -66,7 +66,7 @@ if __name__ == "__main__":
                                        classes=classes,
                                        mode="train",
                                        val_split=round(1 - i, 1),
-                                       # style_hdf5_path=NST_PATH,
+                                       # nst_path=NST_PATH,
                                        )
         print(len(train_val_dataset))
         train_dataset, val_dataset = train_val_dataset.split(0.1)
@@ -104,7 +104,7 @@ if __name__ == "__main__":
         #                              classes=classes,
         #                              mode="train",
         #                              val_split=0.3,
-        #                              # style_hdf5_path=NST_PATH,
+        #                              # nst_path=NST_PATH,
         #                              dataset_func=get_kaggle_imgs,
         #                              )
 

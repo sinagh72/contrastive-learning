@@ -288,13 +288,13 @@ def stylize_dataset_multiple(dataset, style_dir, out_path, style_weight=1, conte
     # content_tf = input_transform(content_size, crop)
     # style_tf = input_transform(style_size, 0)
 
-    hdf5_file = tables.open_file(out_path, mode='w')
-    data_shape = (0, save_size, save_size, 3)
-    img_dtype = tables.UInt8Atom()
-    storage = hdf5_file.create_earray(hdf5_file.root, 'img', img_dtype, shape=data_shape)
+    # hdf5_file = tables.open_file(out_path, mode='w')
+    # data_shape = (0, save_size, save_size, 3)
+    # img_dtype = tables.UInt8Atom()
+    # storage = hdf5_file.create_earray(hdf5_file.root, 'img', img_dtype, shape=data_shape)
 
-    tile_paths = []
-    tile_names = []
+    # tile_paths = []
+    # tile_names = []
 
     save_count = 1000
     # actual style transfer as in AdaIN
@@ -323,14 +323,15 @@ def stylize_dataset_multiple(dataset, style_dir, out_path, style_weight=1, conte
             output = output.detach().squeeze(0)
             output = to_gray_scale(output)
             # if save_count != 0:
-            #     unloader(output).save(f"../data/sample_nst/nst_img_{idx}_{i}.jpg")
+            unloader(output).save(f"../data/nst_data/{img_name[:-5]}_{i}.jpg")
             #     save_count -= 1
             # unloader(output).show()
+
             # print(output.permute(1, 2, 0)[None].numpy().shape)
-            storage.append(output.permute(1, 2, 0)[None].numpy())
-            tilename = img_name[:-5] + '_stylized_' + os.path.basename(style_path)[:-4] + img_name[-5:]
-            tile_names.append(tilename)
-            tile_paths.append(img_path.replace("../", ""))
+            # storage.append(output.permute(1, 2, 0)[None].numpy())
+            # tilename = img_name[:-5] + '_stylized_' + os.path.basename(style_path)[:-4] + img_name[-5:]
+            # tile_names.append(tilename)
+            # tile_paths.append(img_path.replace("../", ""))
         content_info.close()
         # except Exception as err:
         #     print(f'skipped stylization of {fname} because of the following error; {err})')
@@ -342,9 +343,9 @@ def stylize_dataset_multiple(dataset, style_dir, out_path, style_weight=1, conte
     #         for item in skipped_imgs:
     #             f.write("%s\n" % item)
 
-    hdf5_file.create_array(hdf5_file.root, 'paths', tile_paths)
-    hdf5_file.create_array(hdf5_file.root, 'names', tile_names)
-    hdf5_file.close()
+    # hdf5_file.create_array(hdf5_file.root, 'paths', tile_paths)
+    # hdf5_file.create_array(hdf5_file.root, 'names', tile_names)
+    # hdf5_file.close()
 
 
 def rgb2gray(rgb):
@@ -385,7 +386,7 @@ if __name__ == "__main__":
                          mode="test",
                          dataset_func=get_kaggle_imgs,
                          )
-    # p = torch.utils.data.Subset(dataset, np.arange(5350-1, len(dataset)-1))
-    stylize_dataset_multiple(dataset=dataset, style_dir=style_path, out_path=out_path,
-                             style_weight=1000000, content_weight=1, num_steps=1,
+    p = torch.utils.data.Subset(dataset, np.arange(1525, 1526))
+    stylize_dataset_multiple(dataset=p, style_dir=style_path, out_path=out_path,
+                             style_weight=2000, content_weight=1, num_steps=50,
                              save_size=save_size, style_views=style_views, save_sample=False)

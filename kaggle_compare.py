@@ -52,7 +52,7 @@ if __name__ == "__main__":
                                    transform=img_transforms,
                                    classes=classes,
                                    mode="train",
-                                   # style_hdf5_path=NST_PATH,
+                                   # nst_path=NST_PATH,
                                    dataset_func=get_kaggle_imgs,
                                    cv=CV,
                                    cv_counter=i
@@ -62,7 +62,7 @@ if __name__ == "__main__":
                                  dataset_func=get_kaggle_imgs,
                                  classes=classes,
                                  mode="val",
-                                 # style_hdf5_path=NST_PATH,
+                                 # nst_path=NST_PATH,
                                  cv=CV,
                                  cv_counter=i
                                  )
