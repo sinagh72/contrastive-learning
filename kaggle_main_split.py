@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from OCT_dataset import OCTDataset, get_kaggle_imgs
 
 from train import train_simclr, train_simclr_p
-from transformation import ContrastiveTransformations, train_aug
+from transformation import ContrastiveTransformations, train_transformation
 
 plt.set_cmap('cividis')
 import matplotlib
@@ -41,7 +41,7 @@ if __name__ == "__main__":
     # Path to the folder where the pretrained models are saved
     CHECKPOINT_PATH = "trained_models/kaggle_balanced_portion_top5/SimCLR/"
     # Path to style transferred images
-    NST_PATH = "data/nst_balanced_new.hdf5"
+    NST_PATH = "data/nst_data"
     # In this notebook, we use data loaders with heavier computational processing. It is recommended to use as many
     # workers as possible in a data loader, which corresponds to the number of CPU cores
     NUM_WORKERS = os.cpu_count() // 2
@@ -58,12 +58,14 @@ if __name__ == "__main__":
                ("DME", 2)]
 
     train_dataset = OCTDataset(data_root=DATASET_PATH,
-                               transform=ContrastiveTransformations(train_aug, n_views=N_VIEWS),
+                               transform=ContrastiveTransformations(train_transformation(), n_views=N_VIEWS),
                                classes=classes,
                                mode="train",
                                val_split=0,
                                nst_path=NST_PATH,
                                dataset_func=get_kaggle_imgs,
+                               nst_prob=1,
+
                                )
     # val_dataset = OCTDataset(data_root=DATASET_PATH,
     #                          transform=ContrastiveTransformations(train_aug, n_views=N_VIEWS),
@@ -77,7 +79,7 @@ if __name__ == "__main__":
     strategy = None if devices == 1 else DDPStrategy(find_unused_parameters=False)
     simclr_model = train_simclr(devices=devices,
                                 strategy=strategy,
-                                batch_size=min(len(train_dataset) // devices, 450),
+                                batch_size=min(len(train_dataset) // devices, 200),
                                 # batch_size=4,
                                 max_epochs=2000,
                                 train_data=train_dataset,

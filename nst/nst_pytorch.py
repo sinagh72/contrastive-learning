@@ -295,7 +295,7 @@ def stylize_dataset_multiple(dataset, style_dir, out_path, style_weight=1, conte
 
     # tile_paths = []
     # tile_names = []
-
+    generated = os.listdir("../data/nst_data")
     save_count = 1000
     # actual style transfer as in AdaIN
     for idx in tqdm(range(len(dataset))):
@@ -305,6 +305,10 @@ def stylize_dataset_multiple(dataset, style_dir, out_path, style_weight=1, conte
         # try:
         content_info = dataset[idx]["img"]
 
+        if f"{img_name[:-5]}_{0}.jpg" in generated and f"{img_name[:-5]}_{1}.jpg" in generated and \
+                f"{img_name[:-5]}_{2}.jpg" in generated:
+            continue
+        print(img_name[:-5])
         for i, style_path in enumerate(random.choice(styles, style_views, replace=False)):
             style_img = check_img_validity(style_path, styles)
             # style_img = Image.open(style_path).convert('RGB')
@@ -386,7 +390,6 @@ if __name__ == "__main__":
                          mode="test",
                          dataset_func=get_kaggle_imgs,
                          )
-    p = torch.utils.data.Subset(dataset, np.arange(1525, 1526))
-    stylize_dataset_multiple(dataset=p, style_dir=style_path, out_path=out_path,
+    stylize_dataset_multiple(dataset=dataset, style_dir=style_path, out_path=out_path,
                              style_weight=2000, content_weight=1, num_steps=50,
                              save_size=save_size, style_views=style_views, save_sample=False)

@@ -1,11 +1,12 @@
 import torch
-from torchvision.transforms import transforms, InterpolationMode
+from torchvision.transforms import transforms as T
+from torchvision.transforms import InterpolationMode
 
 
 class ContrastiveTransformations(object):
 
-    def __init__(self, transformations, n_views=2):
-        self.transformations = transformations
+    def __init__(self, transform_function, n_views=2):
+        self.transformations = transform_function
         self.n_views = n_views
 
     def __call__(self, x, apply_views: bool = True):
@@ -14,7 +15,7 @@ class ContrastiveTransformations(object):
         return self.transformations(x)
 
 
-def train_aug(img):
+def train_transformation():
     # transform = transforms.Compose([
     #     transforms.Resize((128, 128), InterpolationMode.BICUBIC),
     #     transforms.RandomApply(torch.nn.ModuleList([transforms.ElasticTransform(alpha=(28.0, 30.0),
@@ -25,36 +26,35 @@ def train_aug(img):
     #     transforms.ToTensor(),
     #     transforms.Normalize((0.5,), (0.5,))
     # ])
-    transform = transforms.Compose([transforms.Resize((128, 128), InterpolationMode.BICUBIC),
-                                    transforms.RandomHorizontalFlip(p=0.25),
-                                    transforms.RandomRotation(degrees=45),
-                                    transforms.RandomPerspective(distortion_scale=0.5, p=0.25),
-                                    transforms.RandomApply([
-                                        transforms.ColorJitter(brightness=0.2,
-                                                               contrast=0.2,
-                                                               saturation=0.2,
-                                                               hue=0.1),
-                                        transforms.GaussianBlur(kernel_size=3),
-                                        transforms.RandomAffine(degrees=(30, 70), translate=(0.1, 0.3),
-                                                                scale=(0.5, 0.75)),
-                                        transforms.ElasticTransform(alpha=(50.0, 250.0), sigma=(5.0, 10.0))
-                                    ], p=0.25),
-                                    transforms.RandomGrayscale(p=0.25),
-                                    transforms.Grayscale(3),
-                                    transforms.ToTensor(),
-                                    transforms.Normalize((0.5,), (0.5,)),
-                                    # transforms.Lambda(lambda x: torch.cat([x, x, x], 0)),
-                                    ])
-    img = transform(img.copy())
-    return img
+
+    return T.Compose([T.Resize((128, 128), InterpolationMode.BICUBIC),
+                      T.RandomHorizontalFlip(p=0.25),
+                      T.RandomRotation(degrees=45),
+                      T.RandomPerspective(distortion_scale=0.5, p=0.25),
+                      T.RandomApply([
+                          T.ColorJitter(brightness=0.2,
+                                        contrast=0.2,
+                                        saturation=0.2,
+                                        hue=0.1),
+                          T.GaussianBlur(kernel_size=3),
+                          T.RandomAffine(degrees=(30, 70), translate=(0.1, 0.3),
+                                         scale=(0.5, 0.75)),
+                          T.ElasticTransform(alpha=(50.0, 250.0), sigma=(5.0, 10.0))
+                      ], p=0.25),
+                      T.RandomGrayscale(p=0.25),
+                      T.Grayscale(3),
+                      T.ToTensor(),
+                      T.Normalize((0.5,), (0.5,)),
+                      # transforms.Lambda(lambda x: torch.cat([x, x, x], 0)),
+                      ])
 
 
 def representation_transform(img):
-    transform = transforms.Compose([transforms.RandomHorizontalFlip(p=0.5),
-                                    transforms.RandomRotation(degrees=45),
-                                    transforms.RandomPerspective(distortion_scale=0.5, p=0.5),
-                                    transforms.RandomGrayscale(p=0.2),
-                                    transforms.GaussianBlur(kernel_size=9),
-                                    transforms.Grayscale(1),
-                                    ])
+    transform = T.Compose([T.RandomHorizontalFlip(p=0.5),
+                           T.RandomRotation(degrees=45),
+                           T.RandomPerspective(distortion_scale=0.5, p=0.5),
+                           T.RandomGrayscale(p=0.2),
+                           T.GaussianBlur(kernel_size=9),
+                           T.Grayscale(1),
+                           ])
     return transform(img.copy())

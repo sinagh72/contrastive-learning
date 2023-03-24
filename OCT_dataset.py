@@ -10,6 +10,7 @@ import os
 from PIL import Image
 from natsort import natsorted
 import subsetsum as sb
+import cv2
 
 IMAGE_SIZE = (512, 496)
 
@@ -84,7 +85,7 @@ class OCTDataset(Dataset):
         img_path = img_path.replace("\\", "/")
         img_name = img_path.split(self.data_root)[1].split("/")[1]
         if self.nst_path is not None and random.uniform(0, 1) < self.nst_prob:
-            img = self.load_nst_img(img_path)  # return a list of transformed nst images
+            img = self.load_nst_img(img_name)  # return a list of transformed nst images
         else:
             img = self.load_img(img_path)  # return an image
             if self.transform is not None:
@@ -126,6 +127,8 @@ class OCTDataset(Dataset):
 
     def load_nst_img(self, img_name):
         # find all the nst images corresponding to the img_name
+        # print(self.nst_path + f"/{img_name[:-5]}_?.jpg")
+        # print(glob.glob(self.nst_path + f"/{img_name[:-5]}_?.jpg"))
         nst_img_paths = [nst_img_path for nst_img_path in glob.glob(self.nst_path + f"/{img_name[:-5]}_?.jpg")]
         # randomly select n_view of them and transform the using the transformation
         images = [self.transform(self.load_img(img), False) for img in

@@ -87,13 +87,13 @@ def train_linear_model(batch_size, train_feats_data, val_feats_data, test_feats_
                          sync_batchnorm=True)
     trainer.logger._default_hp_metric = None
     # Data loaders
-    train_loader = DataLoader(train_feats_data, batch_size=batch_size, shuffle=True,
+    train_loader = DataLoader(train_feats_data, batch_size=batch_size, shuffle=True, persistent_workers=True,
                               drop_last=True, pin_memory=True, num_workers=NUM_WORKERS)
 
-    val_loader = DataLoader(val_feats_data, batch_size=batch_size, shuffle=False,
+    val_loader = DataLoader(val_feats_data, batch_size=batch_size, shuffle=False, persistent_workers=True,
                             drop_last=False, pin_memory=True, num_workers=NUM_WORKERS)
 
-    test_loader = DataLoader(test_feats_data, batch_size=batch_size, shuffle=False,
+    test_loader = DataLoader(test_feats_data, batch_size=batch_size, shuffle=False, persistent_workers=True,
                              drop_last=False, pin_memory=True, num_workers=NUM_WORKERS)
 
     # Check whether pretrained model exists. If yes, load it and skip training
