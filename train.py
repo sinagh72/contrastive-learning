@@ -48,12 +48,12 @@ def train_simclr(batch_size, max_epochs=500, train_data=None, val_data=None, che
         print(f'Found pretrained model at {model_path}, loading...')
         model = SimCLR.load_from_checkpoint(model_path)  # Automatically loads the model with the saved hyperparameters
     else:
-        train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True,
+        train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True, persistent_workers=True,
                                   drop_last=True, pin_memory=True, num_workers=NUM_WORKERS)
 
         model = SimCLR(max_epochs=max_epochs, batch_size=batch_size, **kwargs)
         if val_data:
-            val_loader = DataLoader(val_data, batch_size=batch_size, shuffle=False,
+            val_loader = DataLoader(val_data, batch_size=batch_size, shuffle=False, persistent_workers=True,
                                     drop_last=False, pin_memory=True, num_workers=NUM_WORKERS)
 
             trainer.fit(model, train_loader, val_loader)

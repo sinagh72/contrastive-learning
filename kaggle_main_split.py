@@ -39,7 +39,7 @@ if __name__ == "__main__":
     # Path to the folder where the datasets are
     DATASET_PATH = os.getenv('KAGGLE_BALANCED_DATASET_PATH')
     # Path to the folder where the pretrained models are saved
-    CHECKPOINT_PATH = "trained_models/kaggle_balanced_portion_top5/SimCLR/"
+    CHECKPOINT_PATH = "trained_models/kaggle_balanced_portion_top5_nst/SimCLR/"
     # Path to style transferred images
     NST_PATH = "data/nst_data"
     # In this notebook, we use data loaders with heavier computational processing. It is recommended to use as many
@@ -79,7 +79,7 @@ if __name__ == "__main__":
     strategy = None if devices == 1 else DDPStrategy(find_unused_parameters=False)
     simclr_model = train_simclr(devices=devices,
                                 strategy=strategy,
-                                batch_size=min(len(train_dataset) // devices, 200),
+                                batch_size=min(len(train_dataset) // devices, 450),
                                 # batch_size=4,
                                 max_epochs=2000,
                                 train_data=train_dataset,
