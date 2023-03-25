@@ -53,7 +53,7 @@ if __name__ == "__main__":
                               )
 
     batch_size = 64
-    mode = "max"
+    mode = "min"
     monitor = "val_loss"
     patience = 5
     max_epochs = 100
@@ -99,17 +99,17 @@ if __name__ == "__main__":
             f.write('\n')
         del resnet_model
         torch.cuda.empty_cache()
-        # trained_dataset = OCTDataset(data_root=DATASET_PATH,
-        #                              transform=img_transforms,
-        #                              classes=classes,
-        #                              mode="train",
-        #                              val_split=0.3,
-        #                              # nst_path=NST_PATH,
-        #                              dataset_func=get_kaggle_imgs,
-        #                              )
+        trained_dataset = OCTDataset(data_root=DATASET_PATH,
+                                     transform=img_transforms,
+                                     classes=classes,
+                                     mode="train",
+                                     val_split=0.3,
+                                     # nst_path=NST_PATH,
+                                     dataset_func=get_kaggle_imgs,
+                                     )
 
-        # train_dataset, val_dataset = random_split(train_val_dataset, [0.9, 0.1],
-        #                                           generator=torch.Generator().manual_seed(42))
+        train_dataset, val_dataset = random_split(train_val_dataset, [0.9, 0.1],
+                                                  generator=torch.Generator().manual_seed(42))
 
         print(f"training data len: {len(train_dataset)}")
         print(f"validation data len: {len(val_dataset)}")
@@ -138,8 +138,8 @@ if __name__ == "__main__":
                                                        )
 
         file_mode = "a" if os.path.exists(
-            f'log/{log_name_suffix}_simclrp_{batch_size}_{str(round(i, 1))}.txt') else "w"
-        with open(f'log/{log_name_suffix}_simclrp_{batch_size}_{str(round(i, 1))}.txt', file_mode) as f:
+            f'log/{log_name_suffix}_simclrp_nst_{batch_size}_{str(round(i, 1))}.txt') else "w"
+        with open(f'log/{log_name_suffix}_simclrp_nst_{batch_size}_{str(round(i, 1))}.txt', file_mode) as f:
             f.write("====================================")
             f.write('\n')
             f.write(str(simclrp_result['train']))
