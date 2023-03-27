@@ -1,11 +1,12 @@
 import os
+
 import matplotlib.pyplot as plt
 import torchvision
-from pytorch_lightning.strategies import DDPStrategy
 from dotenv import load_dotenv
-from OCT_dataset import OCTDataset, get_kaggle_imgs
+from pytorch_lightning.strategies import DDPStrategy
 
-from train import train_simclr, train_simclr_p
+from OCT_dataset import OCTDataset, get_kaggle_imgs
+from train import train_simclr
 from transformation import ContrastiveTransformations, train_transformation
 
 plt.set_cmap('cividis')
@@ -41,7 +42,7 @@ if __name__ == "__main__":
     # Path to the folder where the pretrained models are saved
     CHECKPOINT_PATH = "trained_models/kaggle_balanced_portion_top5_nst/SimCLR/"
     # Path to style transferred images
-    NST_PATH = "data/nst_data"
+    NST_PATH = "data/nst_data_balanced"
     # In this notebook, we use data loaders with heavier computational processing. It is recommended to use as many
     # workers as possible in a data loader, which corresponds to the number of CPU cores
     NUM_WORKERS = os.cpu_count() // 2
@@ -64,7 +65,7 @@ if __name__ == "__main__":
                                val_split=0,
                                nst_path=NST_PATH,
                                dataset_func=get_kaggle_imgs,
-                               nst_prob=1,
+                               nst_prob=0.5,
 
                                )
     # val_dataset = OCTDataset(data_root=DATASET_PATH,

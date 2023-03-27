@@ -231,7 +231,7 @@ def imshow(tensor, title=None):
     plt.pause(0.001)  # pause a bit so that plots are updated
 
 
-def stylize_dataset_multiple(dataset, style_dir, out_path, style_weight=1, content_weight=1, save_size=256,
+def stylize_dataset_multiple(dataset, style_dir, out_file, style_weight=1, content_weight=1, save_size=256,
                              style_views=10, num_steps=300,
                              save_sample=False):
     # collect style files
@@ -295,7 +295,7 @@ def stylize_dataset_multiple(dataset, style_dir, out_path, style_weight=1, conte
 
     # tile_paths = []
     # tile_names = []
-    generated = os.listdir("../data/nst_data")
+    generated = os.listdir("../data/nst_data_balanced")
     save_count = 1000
     # actual style transfer as in AdaIN
     for idx in tqdm(range(len(dataset))):
@@ -327,7 +327,7 @@ def stylize_dataset_multiple(dataset, style_dir, out_path, style_weight=1, conte
             output = output.detach().squeeze(0)
             output = to_gray_scale(output)
             # if save_count != 0:
-            unloader(output).save(f"../data/nst_data/{img_name[:-5]}_{i}.jpg")
+            unloader(output).save(f"../data/{out_file}/{img_name[:-5]}_{i}.jpg")
             #     save_count -= 1
             # unloader(output).show()
 
@@ -380,8 +380,8 @@ if __name__ == "__main__":
     #                      )
     load_dotenv(dotenv_path="../data/.env")
     style_path = os.getenv('STYLES_PATH')
-    DATASET_PATH = os.getenv('KAGGLE_BALANCED_DATASET_PATH')
-    out_path = "../data/nst_balanced_new.hdf5"
+    DATASET_PATH = os.getenv('KAGGLE_FULL_DATASET_PATH')
+    out_file = "nst_data_full"
 
     dataset = OCTDataset(data_root=DATASET_PATH,
                          img_type="RGB",
@@ -390,6 +390,7 @@ if __name__ == "__main__":
                          mode="test",
                          dataset_func=get_kaggle_imgs,
                          )
-    stylize_dataset_multiple(dataset=dataset, style_dir=style_path, out_path=out_path,
+    stylize_dataset_multiple(dataset=dataset, style_dir=style_path, out_file=out_file,
                              style_weight=2000, content_weight=1, num_steps=50,
                              save_size=save_size, style_views=style_views, save_sample=False)
+

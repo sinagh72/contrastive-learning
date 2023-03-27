@@ -53,8 +53,8 @@ if __name__ == "__main__":
                               )
 
     batch_size = 64
-    mode = "min"
-    monitor = "val_loss"
+    mode = "max"
+    monitor = "val_auc"
     patience = 5
     max_epochs = 100
 
@@ -138,8 +138,8 @@ if __name__ == "__main__":
                                                        )
 
         file_mode = "a" if os.path.exists(
-            f'log/{log_name_suffix}_simclrp_nst_{batch_size}_{str(round(i, 1))}.txt') else "w"
-        with open(f'log/{log_name_suffix}_simclrp_nst_{batch_size}_{str(round(i, 1))}.txt', file_mode) as f:
+            f'log/{log_name_suffix}_simclrp_{batch_size}_{str(round(i, 1))}.txt') else "w"
+        with open(f'log/{log_name_suffix}_simclrp_{batch_size}_{str(round(i, 1))}.txt', file_mode) as f:
             f.write("====================================")
             f.write('\n')
             f.write(str(simclrp_result['train']))
