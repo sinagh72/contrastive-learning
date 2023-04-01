@@ -256,7 +256,7 @@ def get_kaggle_imgs(data_root: str, **kwargs):
                     continue
                 if kwargs["mode"] == "train":
                     img_paths += [img_file_path + "/" + key + count for count in val]
-        print(f"mode: {kwargs['mode']}:{img_file_path}", len(img_paths))
+        print(f"mode: {kwargs['mode']}, {img_file_path}", len(img_paths))
     return img_paths
 
 

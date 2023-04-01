@@ -38,11 +38,11 @@ if __name__ == "__main__":
     CV = 5,
     load_dotenv(dotenv_path="./data/.env")
     # Path to the folder where the datasets are
-    DATASET_PATH = os.getenv('KAGGLE_BALANCED_DATASET_PATH')
+    DATASET_PATH = os.getenv('KAGGLE_FULL_DATASET_PATH')
     # Path to the folder where the pretrained models are saved
-    CHECKPOINT_PATH = "trained_models/kaggle_balanced_portion_top5_nst/SimCLR/"
+    CHECKPOINT_PATH = "trained_models/kaggle_full_top5_nst/SimCLR/"
     # Path to style transferred images
-    NST_PATH = "data/nst_data_balanced"
+    NST_PATH = "data/nst_data_full"
     # In this notebook, we use data loaders with heavier computational processing. It is recommended to use as many
     # workers as possible in a data loader, which corresponds to the number of CPU cores
     NUM_WORKERS = os.cpu_count() // 2
@@ -62,7 +62,7 @@ if __name__ == "__main__":
                                transform=ContrastiveTransformations(train_transformation(), n_views=N_VIEWS),
                                classes=classes,
                                mode="train",
-                               val_split=0,
+                               val_split=0.0,
                                nst_path=NST_PATH,
                                dataset_func=get_kaggle_imgs,
                                nst_prob=0.5,
