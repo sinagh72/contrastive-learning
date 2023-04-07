@@ -295,7 +295,7 @@ def stylize_dataset_multiple(dataset, style_dir, out_file, style_weight=1, conte
 
     # tile_paths = []
     # tile_names = []
-    generated = os.listdir("../data/nst_data_balanced")
+    generated = os.listdir(os.path.join("../data", out_file))
     save_count = 1000
     # actual style transfer as in AdaIN
     for idx in tqdm(range(len(dataset))):
