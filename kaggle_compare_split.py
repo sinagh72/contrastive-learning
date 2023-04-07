@@ -16,11 +16,11 @@ if __name__ == "__main__":
     N_VIEWS = 2
     load_dotenv(dotenv_path="./data/.env")
     # Path to the folder where the datasets are
-    DATASET_PATH = os.getenv('KAGGLE_BALANCED_DATASET_PATH')
+    DATASET_PATH = os.getenv('KAGGLE_FULL_DATASET_PATH')
     # Path to load simclr and to save resnet and linear models
-    CHECKPOINT_PATH = "trained_models/kaggle_balanced_portion_top5/"
+    CHECKPOINT_PATH = "trained_models/kaggle_full_top5_nst/"
     # Path to style transferred image
-    # NST_PATH = "data/nst_balanced.hdf5"
+    # NST_PATH = "data/nst_data_full"
 
     TEST_DATASET_PATH = os.getenv("KAGGLE_COMPARE_TEST_DATASET_PATH")
     # In this notebook, we use data loaders with heavier computational processing. It is recommended to use as many
@@ -133,7 +133,7 @@ if __name__ == "__main__":
                                                        monitor=monitor,
                                                        patience=patience,
                                                        freeze_p=0.0,
-                                                       encoder_path="SimCLR_" + str(1.0),
+                                                       encoder_path="SimCLR_Full",
                                                        save_model_name="SimCLR_portion_" + str(round(i, 1)),
                                                        )
 
