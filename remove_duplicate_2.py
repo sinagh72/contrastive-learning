@@ -6,7 +6,7 @@ import os
 
 import cv2
 import numpy as np
-
+import mmcv
 
 def diff(first_dir, second_dir, first_dir_img_format=".png", second_dir_img_format=".png", remove_diff=False):
     """
@@ -41,7 +41,10 @@ def diff(first_dir, second_dir, first_dir_img_format=".png", second_dir_img_form
         #     os.remove(os.path.join(first_dir, f) + first_dir_img_format)
 
 
-def mse(img1, img2):
+def mse(paths):
+    img1 = cv2.imread(paths[0], cv2.IMREAD_GRAYSCALE)
+    img2 = cv2.imread(paths[1], cv2.IMREAD_GRAYSCALE)
+
     h1, w1 = img1.shape
     h2, w2 = img2.shape
     if h1 != h2 or w1 != w2:
@@ -49,7 +52,17 @@ def mse(img1, img2):
     diff = cv2.subtract(img1, img2)
     err = np.sum(diff ** 2)
     mse = err / (float(h1 * w1))
-    return mse
+
+    if mse == 0:
+        print("=======")
+        print(paths)
+        print("=======")
+        with open("duplicates.txt", "a") as file:
+            file.write(paths[0])
+            file.write(", ")
+            file.write(paths[1])
+            file.write("\n")
+
 
 
 def check_duplicate_all(train_dir):
@@ -71,4 +84,22 @@ if __name__ == "__main__":
     #      first_dir_img_format=".jpeg",
     #      second_dir_img_format=".jpeg",
     #      remove_diff=True)
-    check_duplicate_all(train_dir="./data/kaggle/kaggle_dataset_full")
+    imgs = []
+    train_dir = "./data/kaggle/kaggle_dataset_full"
+    folders = os.listdir("./data/kaggle/kaggle_dataset_full")
+    for f in folders:
+        imgs += os.listdir(os.path.join(train_dir, f))
+    print("total images", len(imgs))
+    check_dit = []
+    for i in range(0, len(imgs) - 1):
+        check_dit = []
+        src_path = os.path.join(train_dir, imgs[i].split("-")[0], imgs[i])
+        for j in range(i + 1, len(imgs)):
+            check_dit += [(src_path, os.path.join(train_dir, imgs[j].split("-")[0], imgs[j]))]
+            # check_dit[src_path] += os.path.join(train_dir, imgs[j].split("-")[0], imgs[j])
+        mmcv.track_parallel_progress(mse, check_dit, 60)
+    # print("total data", len(check_dit))
+    # print(check_dit[0])
+    # mmcv.track_parallel_progress(mse, check_dit, 32)
+
+    # check_duplicate_all(train_dir="./data/kaggle/kaggle_dataset_full")
