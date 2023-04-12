@@ -39,6 +39,7 @@ def train_simclr(batch_size, max_epochs=500, train_data=None, val_data=None, che
                              LearningRateMonitor('epoch')],
                          logger=tb_logger,
                          log_every_n_steps=1,
+                         num_nodes=1,
                          sync_batchnorm=True
                          )
     trainer.logger._default_hp_metric = None  # Optional logging argument that we don't need
@@ -166,6 +167,7 @@ def train_resnet(batch_size, train_data, val_data, test_data, checkpoint_path,
                          callbacks=callbacks,
                          log_every_n_steps=1,
                          sync_batchnorm=True,
+                         num_nodes=1,
                          logger=tb_logger)
     trainer.logger._default_hp_metric = None
 
@@ -233,6 +235,7 @@ def train_simclr_p(batch_size, train_dataset, val_dataset, test_dataset, checkpo
                          max_epochs=kwargs["max_epochs"],
                          callbacks=callbacks,
                          log_every_n_steps=1,
+                         num_nodes=1,
                          sync_batchnorm=True,
                          logger=tb_logger)
     trainer.logger._default_hp_metric = None

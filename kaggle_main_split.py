@@ -40,7 +40,7 @@ if __name__ == "__main__":
     # Path to the folder where the datasets are
     DATASET_PATH = os.getenv('KAGGLE_FULL_DATASET_PATH')
     # Path to the folder where the pretrained models are saved
-    CHECKPOINT_PATH = "trained_models/kaggle_full_top5_nst/SimCLR/"
+    CHECKPOINT_PATH = "trained_models/kaggle_full_top5/SimCLR/"
     # Path to style transferred images
     NST_PATH = "data/nst_data_full"
     # In this notebook, we use data loaders with heavier computational processing. It is recommended to use as many
@@ -63,9 +63,9 @@ if __name__ == "__main__":
                                classes=classes,
                                mode="train",
                                val_split=0.0,
-                               nst_path=NST_PATH,
+                               # nst_path=NST_PATH,
                                dataset_func=get_kaggle_imgs,
-                               nst_prob=0.5,
+                               # nst_prob=0.5,
 
                                )
     # val_dataset = OCTDataset(data_root=DATASET_PATH,

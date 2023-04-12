@@ -18,7 +18,7 @@ if __name__ == "__main__":
     # Path to the folder where the datasets are
     DATASET_PATH = os.getenv('KAGGLE_FULL_DATASET_PATH')
     # Path to load simclr and to save resnet and linear models
-    CHECKPOINT_PATH = "trained_models/kaggle_full_top5_nst/"
+    CHECKPOINT_PATH = "trained_models/kaggle_full_top5/"
     # Path to style transferred image
     # NST_PATH = "data/nst_data_full"
 
@@ -55,7 +55,7 @@ if __name__ == "__main__":
     batch_size = 64
     mode = "max"
     monitor = "val_auc"
-    patience = 5
+    patience = 10
     max_epochs = 100
 
     i = 0.1
@@ -68,7 +68,7 @@ if __name__ == "__main__":
                                        val_split=round(1 - i, 1),
                                        # nst_path=NST_PATH,
                                        )
-        print(len(train_val_dataset))
+        print("data len:", len(train_val_dataset))
         train_dataset, val_dataset = train_val_dataset.split(0.1)
         print("==================Resnet==================")
         log_name_suffix = "kaggle_portion_top5"
