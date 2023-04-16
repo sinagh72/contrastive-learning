@@ -104,7 +104,7 @@ def get_style_model_and_losses(cnn, normalization_mean, normalization_std,
             name = 'conv_{}'.format(i)
         elif isinstance(layer, nn.ReLU):
             name = 'relu_{}'.format(i)
-            # The in-place version doesn't play very nicely with the ContentLoss
+            # The in-place version doesn'resent play very nicely with the ContentLoss
             # and StyleLoss we insert below. So we replace with out-of-place
             # ones here.
             layer = nn.ReLU(inplace=False)

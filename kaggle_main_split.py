@@ -7,7 +7,7 @@ from pytorch_lightning.strategies import DDPStrategy
 
 from OCT_dataset import OCTDataset, get_kaggle_imgs
 from train import train_simclr
-from transformation import ContrastiveTransformations, train_transformation
+from transformation import ContrastiveTransformations, train_transformation, train_transformation2
 
 plt.set_cmap('cividis')
 import matplotlib
@@ -40,12 +40,12 @@ if __name__ == "__main__":
     # Path to the folder where the datasets are
     DATASET_PATH = os.getenv('KAGGLE_FULL_DATASET_PATH')
     # Path to the folder where the pretrained models are saved
-    CHECKPOINT_PATH = "trained_models/kaggle_full_top5/SimCLR/"
+    CHECKPOINT_PATH = "trained_models/kaggle_full_top5_nst_75_transf_2/SimCLR/"
     # Path to style transferred images
     NST_PATH = "data/nst_data_full"
     # In this notebook, we use data loaders with heavier computational processing. It is recommended to use as many
     # workers as possible in a data loader, which corresponds to the number of CPU cores
-    NUM_WORKERS = os.cpu_count() // 2
+    NUM_WORKERS = 16
 
     # Ensure that all operations are deterministic on GPU (if used) for reproducibility
     torch.backends.cudnn.deterministic = True
@@ -59,14 +59,13 @@ if __name__ == "__main__":
                ("DME", 2)]
 
     train_dataset = OCTDataset(data_root=DATASET_PATH,
-                               transform=ContrastiveTransformations(train_transformation(), n_views=N_VIEWS),
+                               transform=ContrastiveTransformations(train_transformation2(), n_views=N_VIEWS),
                                classes=classes,
                                mode="train",
                                val_split=0.0,
-                               # nst_path=NST_PATH,
+                               nst_path=NST_PATH,
                                dataset_func=get_kaggle_imgs,
-                               # nst_prob=0.5,
-
+                               nst_prob=0.75,
                                )
     # val_dataset = OCTDataset(data_root=DATASET_PATH,
     #                          transform=ContrastiveTransformations(train_aug, n_views=N_VIEWS),

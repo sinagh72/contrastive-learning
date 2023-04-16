@@ -1,5 +1,4 @@
 import os
-
 import torch
 from dotenv import load_dotenv
 from pytorch_lightning.strategies import DDPStrategy
@@ -8,6 +7,7 @@ from torchvision.transforms import transforms, InterpolationMode
 
 from OCT_dataset import OCTDataset, get_kaggle_imgs, get_duke_imgs
 from train import train_resnet, train_simclr_p
+from transformation import train_transformation
 
 if __name__ == "__main__":
     torch.multiprocessing.set_sharing_strategy('file_system')
@@ -18,7 +18,7 @@ if __name__ == "__main__":
     # Path to the folder where the datasets are
     DATASET_PATH = os.getenv('KAGGLE_FULL_DATASET_PATH')
     # Path to load simclr and to save resnet and linear models
-    CHECKPOINT_PATH = "trained_models/kaggle_full_top5/"
+    CHECKPOINT_PATH = "trained_models/kaggle_full_top5_nst_1/"
     # Path to style transferred image
     # NST_PATH = "data/nst_data_full"
 
@@ -38,7 +38,7 @@ if __name__ == "__main__":
                                          transforms.ToTensor(),
                                          transforms.Normalize((0.5,), (0.5,)),
                                          ])
-
+    # img_transforms = train_transformation()
     classes = [("NORMAL", 0),
                ("AMD", 1),
                ("DME", 2)]

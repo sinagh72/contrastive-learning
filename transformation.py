@@ -16,17 +16,6 @@ class ContrastiveTransformations(object):
 
 
 def train_transformation():
-    # transform = transforms.Compose([
-    #     transforms.Resize((128, 128), InterpolationMode.BICUBIC),
-    #     transforms.RandomApply(torch.nn.ModuleList([transforms.ElasticTransform(alpha=(28.0, 30.0),
-    #                                                                             sigma=(3.5, 4.0))]), p=0.3),
-    #     transforms.RandomAffine(degrees=4.6, scale=(0.98, 1.02), translate=(0.03, 0.03)),
-    #     transforms.RandomHorizontalFlip(p=0.25),
-    #     transforms.Grayscale(3),
-    #     transforms.ToTensor(),
-    #     transforms.Normalize((0.5,), (0.5,))
-    # ])
-
     return T.Compose([T.Resize((128, 128), InterpolationMode.BICUBIC),
                       T.RandomHorizontalFlip(p=0.25),
                       T.RandomRotation(degrees=45),
@@ -47,6 +36,23 @@ def train_transformation():
                       T.Normalize((0.5,), (0.5,)),
                       # transforms.Lambda(lambda x: torch.cat([x, x, x], 0)),
                       ])
+
+
+def train_transformation2():
+    return T.Compose([
+        T.Resize((128, 128), InterpolationMode.BICUBIC),
+        T.RandomHorizontalFlip(p=0.25),
+        T.RandomRotation(degrees=45),
+        T.Grayscale(3),
+        T.GaussianBlur(kernel_size=5),
+        T.ColorJitter(brightness=0.4,
+                      contrast=0.4,
+                      saturation=0.4,
+                      hue=0.2),
+        T.ToTensor(),
+        T.Normalize((0.5,), (0.5,)),
+        # transforms.Lambda(lambda x: torch.cat([x, x, x], 0)),
+    ])
 
 
 def representation_transform(img):

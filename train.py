@@ -42,7 +42,7 @@ def train_simclr(batch_size, max_epochs=500, train_data=None, val_data=None, che
                          num_nodes=1,
                          sync_batchnorm=True
                          )
-    trainer.logger._default_hp_metric = None  # Optional logging argument that we don't need
+    trainer.logger._default_hp_metric = None  # Optional logging argument that we don'resent need
 
     # Check whether pretrained model exists. If yes, load it and skip training
     if os.path.isfile(model_path):
@@ -298,7 +298,7 @@ def train_simclr_p(batch_size, train_dataset, val_dataset, test_dataset, checkpo
 #                          logger=logger,
 #                          log_every_n_steps=1,
 #                          sync_batchnorm=True)
-#     trainer.logger._default_hp_metric = None  # Optional logging argument that we don't need
+#     trainer.logger._default_hp_metric = None  # Optional logging argument that we don'resent need
 #
 #     # Check whether pretrained model exists. If yes, load it and skip training
 #     if os.path.isfile(model_path):
