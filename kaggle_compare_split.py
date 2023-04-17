@@ -18,7 +18,7 @@ if __name__ == "__main__":
     # Path to the folder where the datasets are
     DATASET_PATH = os.getenv('KAGGLE_FULL_DATASET_PATH')
     # Path to load simclr and to save resnet and linear models
-    CHECKPOINT_PATH = "trained_models/kaggle_full_top5_nst_1/"
+    CHECKPOINT_PATH = "trained_models/kaggle_full_top5_nst75_transf2/"
     # Path to style transferred image
     # NST_PATH = "data/nst_data_full"
 
@@ -70,46 +70,36 @@ if __name__ == "__main__":
                                        )
         print("data len:", len(train_val_dataset))
         train_dataset, val_dataset = train_val_dataset.split(0.1)
-        print("==================Resnet==================")
         log_name_suffix = "kaggle_portion_top5"
-        strategy = None if devices == 1 else DDPStrategy(find_unused_parameters=False)
-        resnet_model, resnet_result = train_resnet(devices=devices,
-                                                   strategy=strategy,
-                                                   batch_size=batch_size,
-                                                   train_data=train_dataset,
-                                                   val_data=val_dataset,
-                                                   test_data=test_dataset,
-                                                   lr=1e-3,
-                                                   weight_decay=2e-4,
-                                                   checkpoint_path=CHECKPOINT_PATH + "/ResNet",
-                                                   max_epochs=max_epochs,
-                                                   classes=classes,
-                                                   save_model_name="ResNet_" + str(round(i, 1)),
-                                                   mode=mode,
-                                                   monitor=monitor,
-                                                   patience=patience)
 
-        file_mode = "a" if os.path.exists(f'log/{log_name_suffix}_resnet_{batch_size}_{str(round(i, 1))}.txt') else "w"
-        with open(f'log/{log_name_suffix}_resnet_{batch_size}_{str(round(i, 1))}.txt', file_mode) as f:
-            f.write("====================================")
-            f.write('\n')
-            f.write(str(resnet_result['train']))
-            f.write('\n' + str(resnet_result['val']))
-            f.write('\n' + str(resnet_result['test']))
-            f.write('\n')
-        del resnet_model
-        torch.cuda.empty_cache()
-        trained_dataset = OCTDataset(data_root=DATASET_PATH,
-                                     transform=img_transforms,
-                                     classes=classes,
-                                     mode="train",
-                                     val_split=0.3,
-                                     # nst_path=NST_PATH,
-                                     dataset_func=get_kaggle_imgs,
-                                     )
-
-        train_dataset, val_dataset = random_split(train_val_dataset, [0.9, 0.1],
-                                                  generator=torch.Generator().manual_seed(42))
+        # print("==================Resnet==================")
+        # strategy = None if devices == 1 else DDPStrategy(find_unused_parameters=False)
+        # resnet_model, resnet_result = train_resnet(devices=devices,
+        #                                            strategy=strategy,
+        #                                            batch_size=batch_size,
+        #                                            train_data=train_dataset,
+        #                                            val_data=val_dataset,
+        #                                            test_data=test_dataset,
+        #                                            lr=1e-3,
+        #                                            weight_decay=2e-4,
+        #                                            checkpoint_path=CHECKPOINT_PATH + "/ResNet",
+        #                                            max_epochs=max_epochs,
+        #                                            classes=classes,
+        #                                            save_model_name="ResNet_" + str(round(i, 1)),
+        #                                            mode=mode,
+        #                                            monitor=monitor,
+        #                                            patience=patience)
+        #
+        # file_mode = "a" if os.path.exists(f'log/{log_name_suffix}_resnet_{batch_size}_{str(round(i, 1))}.txt') else "w"
+        # with open(f'log/{log_name_suffix}_resnet_{batch_size}_{str(round(i, 1))}.txt', file_mode) as f:
+        #     f.write("====================================")
+        #     f.write('\n')
+        #     f.write(str(resnet_result['train']))
+        #     f.write('\n' + str(resnet_result['val']))
+        #     f.write('\n' + str(resnet_result['test']))
+        #     f.write('\n')
+        # del resnet_model
+        # torch.cuda.empty_cache()
 
         print(f"training data len: {len(train_dataset)}")
         print(f"validation data len: {len(val_dataset)}")
