@@ -26,7 +26,8 @@ class SimCLR(pl.LightningModule):
         # The MLP for g(.) consists of Linear->ReLU->Linear
         self.convnet.fc = nn.Sequential(
             self.convnet.fc,  # Linear(ResNet output, feature_dim)
-            nn.BatchNorm1d(hidden_dim),
+            # nn.BatchNorm1d(hidden_dim),
+            nn.Linear(hidden_dim, hidden_dim, bias=False),  # Linear(hidden_dim, feature_dim)
             nn.ReLU(),
             nn.Linear(hidden_dim, feature_dim, bias=False)  # Linear(hidden_dim, feature_dim)
         )
@@ -38,18 +39,25 @@ class SimCLR(pl.LightningModule):
         return self.convnet(x)
 
     def configure_optimizers(self):
-        max_epochs = self.hparams.max_epochs
-        param_groups = define_param_groups(self.convnet, self.hparams.weight_decay, 'adam')
-        optimizer = Adam(param_groups, lr=self.hparams.lr, weight_decay=self.hparams.weight_decay)
+        # max_epochs = self.hparams.max_epochs
+        # param_groups = define_param_groups(self.convnet, self.hparams.weight_decay, 'adam')
+        # optimizer = Adam(param_groups, lr=self.hparams.lr, weight_decay=self.hparams.weight_decay)
+        #
+        # print(f'Optimizer Adam, '
+        #       f'Learning Rate {self.hparams.lr}, '
+        #       f'Effective batch size {self.hparams.batch_size * self.hparams.gradient_accumulation_steps}')
+        #
+        # scheduler_warmup = LinearWarmupCosineAnnealingLR(optimizer, warmup_epochs=10, max_epochs=max_epochs,
+        #                                                  warmup_start_lr=0.0)
 
-        print(f'Optimizer Adam, '
-              f'Learning Rate {self.hparams.lr}, '
-              f'Effective batch size {self.hparams.batch_size * self.hparams.gradient_accumulation_steps}')
+        # optimizer = torch.optim.Adam(self.convnet.parameters(), self.hparams.lr, weight_decay=self.hparams.weight_decay)
+        # scheduler_warmup = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=len(self.hparams.train_loader), eta_min=0,
+        #                                                        last_epoch=-1)
+        # return [optimizer], [scheduler_warmup]
 
-        scheduler_warmup = LinearWarmupCosineAnnealingLR(optimizer, warmup_epochs=10, max_epochs=max_epochs,
-                                                         warmup_start_lr=0.0)
+        optimizer = torch.optim.Adam(self.model.parameters(), lr=3e-4)
+        return {"optimizer": optimizer}
 
-        return [optimizer], [scheduler_warmup]
 
     def info_nce_loss(self, feats):
         # Calculate cosine similarity between all images in the batch
