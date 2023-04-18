@@ -54,11 +54,12 @@ def split_data(img_paths, val_split, mode, classes):
 class OCTDataset(Dataset):
 
     def __init__(self, data_root, img_type="L", transform=None, img_size=IMAGE_SIZE, classes=None,
-                 dataset_func=None, nst_path=None, nst_prob=1, **kwargs):
+                 n_views=2, dataset_func=None, nst_path=None, nst_prob=1, **kwargs):
         if classes is None:
             classes = [("NORMAL", 0),
                        ("AMD", 1),
                        ("DME", 2)]
+        self.n_views = n_views
         self.data_root = data_root
         self.transform = transform
         self.img_size = img_size
@@ -84,12 +85,15 @@ class OCTDataset(Dataset):
         img_path = self.img_paths[index]
         img_path = img_path.replace("\\", "/")
         img_name = img_path.split(self.data_root)[1].split("/")[1]
-        if self.nst_path is not None and random.uniform(0, 1) < self.nst_prob:
-            img = self.load_nst_img(img_name)  # return a list of transformed nst images
-        else:
-            img = self.load_img(img_path)  # return an image
+        img_views = []
+        for i in range(self.n_views):
+            if self.nst_path is not None and random.uniform(0, 1) < self.nst_prob:
+                img_views.append(self.load_nst_img(img_name))  # return a list of transformed nst images
+            else:
+                img_views.append(self.load_img(img_path))  # return an image
+
             if self.transform is not None:
-                img = self.transform(img)
+                img_views[i] = self.transform(img_views[i])
             # image.show()
         # img = torch.from_numpy(img).permute(2, 0, 1).float()
         """
@@ -108,7 +112,7 @@ class OCTDataset(Dataset):
         # 'label': depends on the classes }
         # img_folder = img_path.split(self.data_root)[1].split("/")[0],
 
-        results = dict(img_path=img_path, img_name=img_name, img=img,
+        results = dict(img_path=img_path, img_name=img_name, img=img_views,
                        label=label)
         return results
 
@@ -130,12 +134,14 @@ class OCTDataset(Dataset):
         # print(self.nst_path + f"/{img_name[:-5]}_?.jpg")
         # print(glob.glob(self.nst_path + f"/{img_name[:-5]}_?.jpg"))
         nst_img_paths = [nst_img_path for nst_img_path in glob.glob(self.nst_path + f"/{img_name[:-5]}_?.jpg")]
+
         # randomly select n_view of them and transform the using the transformation
-        images = [self.transform(self.load_img(img), False) for img in
-                  np.random.choice(nst_img_paths, self.transform.n_views, replace=False)]
+        # images = [self.transform(self.load_img(img), False) for img in
+        #           np.random.choice(nst_img_paths, self.transform.n_views, replace=False)]
+        img = Image.open(np.random.choice(nst_img_paths, 1)).convert(self.img_type)
         # select n_views of them
         # Note: If n_views > len(generated nst for each image) then the image will be replicated!
-        return images
+        return img
 
     # def load_nst_img(self, img_path):
     #     # iteratively transform all images that are generated using NST

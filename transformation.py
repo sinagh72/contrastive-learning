@@ -1,23 +1,23 @@
 import numbers
 
+import PIL.Image
 import torch
 from PIL import ImageOps
-from PIL.Image import Resampling
 from numpy import random
 from torchvision.transforms import transforms as T
 from torchvision.transforms import InterpolationMode
 
 
-class ContrastiveTransformations(object):
-
-    def __init__(self, transform_function, n_views=2):
-        self.transformations = transform_function
-        self.n_views = n_views
-
-    def __call__(self, x, apply_views: bool = True):
-        if apply_views:
-            return [self.transformations(x) for _ in range(self.n_views)]
-        return self.transformations(x)
+# class ContrastiveTransformations(object):
+#
+#     def __init__(self, transform_function, n_views=2):
+#         self.transformations = transform_function
+#         self.n_views = n_views
+#
+#     def __call__(self, x, apply_views: bool = True):
+#         if apply_views:
+#             return [self.transformations(x) for _ in range(self.n_views)]
+#         return self.transformations(x)
 
 
 def train_transformation():
@@ -78,7 +78,7 @@ class RandomCrop(object):
         #     self.size = (int(crop_size), int(crop_size))
         # else:
         #     self.size = crop_size
-        self.corp_size = crop_size
+        self.crop_size = crop_size
         self.resize = resize
         self.nopad = nopad
         self.pad_color = (0, 0, 0)
@@ -86,7 +86,7 @@ class RandomCrop(object):
     def __call__(self, img, centroid=None):
         w, h = img.size
         # ASSUME H, W
-        th, tw = self.size
+        th, tw = self.crop_size
         if w == tw and h == th:
             return img
 
@@ -129,7 +129,7 @@ class RandomCrop(object):
                 y1 = 0
             else:
                 y1 = random.randint(0, h - th)
-        return img.crop((x1, y1, x1 + tw, y1 + th)).resize(size=self.resize, resample=Resampling.LANCZOS)
+        return img.crop((x1, y1, x1 + tw, y1 + th)).resize(size=self.resize, resample=PIL.Image.LANCZOS)
 
 
 def train_transformation3():
