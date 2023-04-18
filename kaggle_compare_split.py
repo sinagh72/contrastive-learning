@@ -18,7 +18,7 @@ if __name__ == "__main__":
     # Path to the folder where the datasets are
     DATASET_PATH = os.getenv('KAGGLE_FULL_DATASET_PATH')
     # Path to load simclr and to save resnet and linear models
-    CHECKPOINT_PATH = "trained_models/kaggle_full_top5_nst75_transf2/"
+    CHECKPOINT_PATH = "trained_models/kaggle_full_top5_nst75_transf3_hiddim512/"
     # Path to style transferred image
     # NST_PATH = "data/nst_data_full"
 
