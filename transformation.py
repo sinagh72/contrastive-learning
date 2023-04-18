@@ -2,6 +2,7 @@ import numbers
 
 import torch
 from PIL import ImageOps
+from PIL.Image import Resampling
 from numpy import random
 from torchvision.transforms import transforms as T
 from torchvision.transforms import InterpolationMode
@@ -71,12 +72,14 @@ class RandomCrop(object):
     If a centroid is passed in, the crop must intersect the centroid.
     """
 
-    def __init__(self, size=(400, 400), nopad=True):
+    def __init__(self, crop_size=(400, 400), resize=(128, 128), nopad=True):
 
-        if isinstance(size, numbers.Number):
-            self.size = (int(size), int(size))
-        else:
-            self.size = size
+        # if isinstance(crop_size, numbers.Number):
+        #     self.size = (int(crop_size), int(crop_size))
+        # else:
+        #     self.size = crop_size
+        self.corp_size = crop_size
+        self.resize = resize
         self.nopad = nopad
         self.pad_color = (0, 0, 0)
 
@@ -126,16 +129,28 @@ class RandomCrop(object):
                 y1 = 0
             else:
                 y1 = random.randint(0, h - th)
-        return img.crop((x1, y1, x1 + tw, y1 + th))
+        return img.crop((x1, y1, x1 + tw, y1 + th)).resize(size=self.resize, resample=Resampling.LANCZOS)
 
 
 def train_transformation3():
     return T.Compose([
-        RandomCrop(size=400),
+        RandomCrop(crop_size=(400, 400), resize=(128, 128)),
         T.Resize((128, 128), InterpolationMode.BICUBIC),
         T.Grayscale(3),
-        T.ColorJitter(brightness=0.4,
-                      contrast=0.4),
+        T.ToTensor(),
+        T.Normalize((0.5,), (0.5,)),
+    ])
+
+
+def train_transformation4():
+    return T.Compose([
+        RandomCrop(crop_size=(400, 400), resize=(128, 128)),
+        T.RandomHorizontalFlip(),  # probability = 0.5
+        T.RandomVerticalFlip(),  # probability = 0.5
+        T.RandomRotation(degrees=30),  # probability = 0.5
+        T.RandomApply([T.ColorJitter(brightness=0.5, contrast=0.5)], p=0.8),
+        T.GaussianBlur(kernel_size=9),
+        T.Grayscale(3),
         T.ToTensor(),
         T.Normalize((0.5,), (0.5,)),
     ])
