@@ -41,7 +41,7 @@ if __name__ == "__main__":
     # Path to the folder where the datasets are
     DATASET_PATH = os.getenv('KAGGLE_FULL_DATASET_PATH')
     # Path to the folder where the pretrained models are saved
-    CHECKPOINT_PATH = "trained_models/kaggle_full_top5_nst75_transf3_hiddim512/SimCLR/"
+    CHECKPOINT_PATH = "trained_models/kaggle_full_top5_nst7_transf4/SimCLR/"
     # Path to style transferred images
     NST_PATH = "data/nst_data_full"
     # In this notebook, we use data loaders with heavier computational processing. It is recommended to use as many
@@ -66,7 +66,7 @@ if __name__ == "__main__":
                                val_split=0.0,
                                nst_path=NST_PATH,
                                dataset_func=get_kaggle_imgs,
-                               nst_prob=0.75,
+                               nst_prob=0.7,
                                )
     # val_dataset = OCTDataset(data_root=DATASET_PATH,
     #                          transform=ContrastiveTransformations(train_aug, n_views=N_VIEWS),
@@ -80,7 +80,7 @@ if __name__ == "__main__":
     strategy = None if devices == 1 else DDPStrategy(find_unused_parameters=False)
     simclr_model = train_simclr(devices=devices,
                                 strategy=strategy,
-                                batch_size=min(len(train_dataset) // devices, 450),
+                                batch_size=min(len(train_dataset) // devices, 400),
                                 # batch_size=4,
                                 max_epochs=500,
                                 train_data=train_dataset,
