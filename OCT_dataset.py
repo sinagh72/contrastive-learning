@@ -138,7 +138,7 @@ class OCTDataset(Dataset):
         # randomly select n_view of them and transform the using the transformation
         # images = [self.transform(self.load_img(img), False) for img in
         #           np.random.choice(nst_img_paths, self.transform.n_views, replace=False)]
-        img = Image.open(np.random.choice(nst_img_paths, 1)).convert(self.img_type)
+        img = Image.open(np.random.choice(nst_img_paths, 1)[0]).convert(self.img_type)
         # select n_views of them
         # Note: If n_views > len(generated nst for each image) then the image will be replicated!
         return img

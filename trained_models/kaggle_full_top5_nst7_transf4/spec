@@ -1,0 +1,11 @@
+batch_size = 400
+optimizer = optim.AdamW(self.convnet.parameters(),
+                                lr=self.hparams.lr,
+                                weight_decay=self.hparams.weight_decay)
+        lr_scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer,
+                                                            T_max=self.hparams.max_epochs,
+                                                            eta_min=self.hparams.lr / 50)
+train transformation 4
+max_epoch = 500
+
+

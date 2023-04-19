@@ -38,9 +38,10 @@ def train_simclr(batch_size, max_epochs=500, train_data=None, val_data=None, che
                                              save_weights_only=True, mode=mode, monitor=monitor),
                              LearningRateMonitor('epoch')],
                          logger=tb_logger,
-                         log_every_n_steps=1,
+                         # log_every_n_steps=1,
                          num_nodes=1,
-                         sync_batchnorm=True
+                         auto_scale_batch_size="binserach",
+                         # sync_batchnorm=True
                          )
     trainer.logger._default_hp_metric = None  # Optional logging argument that we don'resent need
 

@@ -7,8 +7,9 @@ from pytorch_lightning.strategies import DDPStrategy
 
 from OCT_dataset import OCTDataset, get_kaggle_imgs
 from train import train_simclr
-from transformation import ContrastiveTransformations, train_transformation, train_transformation2, \
-    train_transformation3
+# from transformation import ContrastiveTransformations,
+from transformation import train_transformation, train_transformation2, \
+    train_transformation3, train_transformation4
 
 plt.set_cmap('cividis')
 import matplotlib
@@ -43,7 +44,7 @@ if __name__ == "__main__":
     # Path to the folder where the pretrained models are saved
     CHECKPOINT_PATH = "trained_models/kaggle_full_top5_nst7_transf4/SimCLR/"
     # Path to style transferred images
-    NST_PATH = "data/nst_data_full"
+    NST_PATH = os.getenv('NST_PATH')
     # In this notebook, we use data loaders with heavier computational processing. It is recommended to use as many
     # workers as possible in a data loader, which corresponds to the number of CPU cores
     NUM_WORKERS = 16
@@ -60,7 +61,7 @@ if __name__ == "__main__":
                ("DME", 2)]
 
     train_dataset = OCTDataset(data_root=DATASET_PATH,
-                               transform=ContrastiveTransformations(train_transformation3(), n_views=N_VIEWS),
+                               transform=train_transformation4(),
                                classes=classes,
                                mode="train",
                                val_split=0.0,

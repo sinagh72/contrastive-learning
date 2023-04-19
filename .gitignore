@@ -5,6 +5,7 @@
 /models/__pycache__/
 /__pycache__/
 /data/
-/trained_models/
+#/trained_models/
 /nst/models/
 /data/nst_balanced_new_backup_5350.hdf5
+/trained_models/kaggle with duplicates/
